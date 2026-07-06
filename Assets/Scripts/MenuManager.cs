@@ -15,12 +15,12 @@ public class MenuManager : MonoBehaviour
     public void OnConnectPressed()
     {
         string ip;
-        int port;
+        ushort port;
 
         try {
             string[] temp = ipPortInputField.text.Split(":");
             ip = temp[0];
-            port = int.Parse(temp[1]);
+            port = ushort.Parse(temp[1]);
             Debug.Log($"IP: {ip}, PORT: {port}");
             
 
