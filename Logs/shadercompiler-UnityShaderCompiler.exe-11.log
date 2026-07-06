@@ -39,3 +39,4 @@ Cmd: compileSnippet
   error: 1 plat 4 at C:/Users/User.XLAB01/MultiplayerDerby/Library/PackageCache/com.unity.render-pipelines.core@c3bbbae46ff1/Editor/Lighting/ProbeVolume/VoxelizeScene.hlsl(352): use of potentially uninitialized variable (rayOrigin) use of potentially uninitialized variable (rayDir)
  ok=1 outsize=13962
 
+Cmd: shutdown

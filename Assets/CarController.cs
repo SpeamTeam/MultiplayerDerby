@@ -1,46 +1,45 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Подключаем библиотеку новой системы ввода
+using UnityEngine.InputSystem;
 
 public class CarController : MonoBehaviour
 {
-    [Header("Wheels")]
+    [Header("Wheels Colliders")]
     public WheelCollider wheelFL;
     public WheelCollider wheelFR;
     public WheelCollider wheelRL;
     public WheelCollider wheelRR;
+
+    [Header("Wheels Visuals")]
+    public Transform visualFL;
+    public Transform visualFR;
+    public Transform visualRL;
+    public Transform visualRR;
 
     [Header("Settings")]
     public float motorForce = 1500f;
     public float maxSteerAngle = 30f;
     public float brakeForce = 3000f;
 
+    [Header("Steering Smoothing")] // НОВОЕ: Настройки плавности руля
+    public float steerSpeed = 10f; // Чем меньше значение, тем медленнее крутится руль
+
     private Rigidbody rb;
     private float moveInput;
     private float steerInput;
     private bool isBraking;
 
-    // Ссылка на сгенерированный класс управления
+    private float currentSteerAngle; // НОВОЕ: Запоминаем текущий угол поворота
+
     private CarControls inputActions;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-
-        // Создаем экземпляр управления
         inputActions = new CarControls();
     }
 
-    // Включаем чтение кнопок, когда объект активен
-    private void OnEnable()
-    {
-        inputActions.Enable();
-    }
-
-    // Выключаем, когда не активен
-    private void OnDisable()
-    {
-        inputActions.Disable();
-    }
+    private void OnEnable() => inputActions.Enable();
+    private void OnDisable() => inputActions.Disable();
 
     void Start()
     {
@@ -49,26 +48,32 @@ public class CarController : MonoBehaviour
 
     void Update()
     {
-        // Считываем значения из новой системы ввода
-        // ReadValue<float>() вернет от -1 до 1 (для W/S и A/D)
         moveInput = inputActions.Driving.Accelerate.ReadValue<float>();
         steerInput = inputActions.Driving.Steer.ReadValue<float>();
-
-        // IsPressed() вернет true, пока нажат пробел
         isBraking = inputActions.Driving.Brake.IsPressed();
+
+        UpdateWheelVisual(wheelFL, visualFL);
+        UpdateWheelVisual(wheelFR, visualFR);
+        UpdateWheelVisual(wheelRL, visualRL);
+        UpdateWheelVisual(wheelRR, visualRR);
     }
 
     void FixedUpdate()
     {
-        // Вся физика осталась абсолютно такой же!
-
-        // Газ — крутим задние колёса
+        // Газ
         wheelRL.motorTorque = moveInput * motorForce;
         wheelRR.motorTorque = moveInput * motorForce;
 
-        // Руль — поворачиваем передние колёса
-        wheelFL.steerAngle = steerInput * maxSteerAngle;
-        wheelFR.steerAngle = steerInput * maxSteerAngle;
+        // НОВОЕ: Плавный поворот руля
+        // 1. Вычисляем желаемый угол (куда игрок хочет повернуть)
+        float targetSteerAngle = steerInput * maxSteerAngle;
+
+        // 2. Плавно меняем текущий угол в сторону желаемого
+        currentSteerAngle = Mathf.Lerp(currentSteerAngle, targetSteerAngle, steerSpeed * Time.fixedDeltaTime);
+
+        // 3. Применяем сглаженный угол к колёсам
+        wheelFL.steerAngle = currentSteerAngle;
+        wheelFR.steerAngle = currentSteerAngle;
 
         // Тормоз
         if (isBraking)
@@ -86,4 +91,14 @@ public class CarController : MonoBehaviour
             wheelRR.brakeTorque = 0f;
         }
     }
+
+    private void UpdateWheelVisual(WheelCollider col, Transform visual)
+    {
+        if (visual == null) return;
+
+        col.GetWorldPose(out Vector3 position, out Quaternion rotation);
+        visual.position = position;
+        visual.rotation = rotation;
+    }
 }
+
