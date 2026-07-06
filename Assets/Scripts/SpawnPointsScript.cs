@@ -2,5 +2,7 @@ using UnityEngine;
 
 public class SpawnPointsScript : MonoBehaviour
 {
-    public Transform[] spawnPoints;
+    [SerializeField] private Transform[] spawnPoints;
+
+    public Transform[] getSpawnPoints() { return spawnPoints; }
 }
