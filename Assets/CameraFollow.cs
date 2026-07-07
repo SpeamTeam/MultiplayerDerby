@@ -37,6 +37,8 @@ public class CameraFollow : MonoBehaviour
     public float shakeDuration = 0.5f;
     [Tooltip("Частота Перлин-шума для тряски")]
     public float shakeFrequency = 20f;
+    [Tooltip("Импульсы силой ниже этого порога полностью игнорируются — страховка на уровне камеры (основная фильтрация мелких/ложных ударов делается в CarCollisionDetector, но если TriggerShake вызовет кто-то ещё — совсем мелкий шум не должен трясти экран)")]
+    public float minShakeImpactForce = 3f;
 
     [Header("4. Обработка переворотов")]
     [Tooltip("Высота точки фокуса на машине (0 = центр, выше = ближе к крыше)")]
@@ -79,6 +81,15 @@ public class CameraFollow : MonoBehaviour
         // Автопоиск target, если не назначен вручную
         if (targetRb != null && target == null)
             target = targetRb.transform;
+
+        // Пустой collisionMask = SphereCast физически не с чем сравнивать,
+        // и камера будет свободно проходить сквозь стены/геометрию арены.
+        // Предупреждаем сразу, а не молча ловим баг на глаз.
+        if (collisionMask.value == 0)
+        {
+            Debug.LogWarning($"{name}: CameraFollow.collisionMask не настроен (Nothing). " +
+                              "Камера будет проходить сквозь стены. Укажи слой арены/стен в инспекторе.");
+        }
     }
 
     private void LateUpdate()
@@ -215,6 +226,9 @@ public class CameraFollow : MonoBehaviour
     /// <param name="impactForce">Сила удара, обычно collision.relativeVelocity.magnitude</param>
     public void TriggerShake(float impactForce)
     {
+        // Страховка: совсем слабый "удар" вообще не должен трясти камеру.
+        if (impactForce < minShakeImpactForce) return;
+
         float magnitude = Mathf.Clamp(impactForce * shakeMagnitudeMultiplier, 0f, maxShakeMagnitude);
 
         // Берём максимум, чтобы слабый удар не "перебивал" уже идущую сильную тряску
@@ -233,3 +247,4 @@ public class CameraFollow : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, cameraRadius);
     }
 }
+
