@@ -4,6 +4,7 @@
 [Bb]uild/*
 [Bb]uilds/*
 [Ll]ogs/*
+[Uu]ser[Ss]ettings/*
 Assets/AssetStoreTools*
 *.log
 
@@ -38,3 +39,5 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+Logs
+UserSettings
