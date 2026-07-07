@@ -103,6 +103,8 @@ public class NetworkHandler : MonoBehaviour
     {
         if (!(sceneEvent.SceneEventType == SceneEventType.LoadComplete && networkManager.IsServer))
             return;
+        if (sceneEvent.ClientId != networkManager.LocalClientId) 
+            return;
         if (sceneEvent.SceneName == worldSceneName)
             SpawnProvider();
     }
@@ -110,7 +112,7 @@ public class NetworkHandler : MonoBehaviour
     private void SpawnProvider()
     {
         GameObject instance = Instantiate(networkProviderPrefab, Vector3.zero, Quaternion.identity);
-        NetworkObject networkObject = instance.GetComponent<NetworkObject >();
+        NetworkObject networkObject = instance.GetComponent<NetworkObject>();
         networkObject.Spawn();
     }
 

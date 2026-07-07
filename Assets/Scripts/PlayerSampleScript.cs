@@ -5,9 +5,10 @@
 
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody), typeof(PlayerInput))]
 public class PlayerController : NetworkBehaviour
 {
     [Header("Movement Settings")]
@@ -16,13 +17,12 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float groundCheckDistance = 0.6f;
     
     [Header("References")]
-    [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     
     private Rigidbody rb;
     private bool isGrounded;
-    private Vector2 moveInput;
-    private bool jumpPressed;
+    private Vector2 _moveInput;
+    private bool _jumpPressed;
     
     // Input System
     private SampleInputActions inputActions;
@@ -33,29 +33,17 @@ public class PlayerController : NetworkBehaviour
         
         // Инициализация Input System
         inputActions = new SampleInputActions();
-        
-        // Создаём точку проверки земли, если её нет
-        if (groundCheck == null)
-        {
-            GameObject checkObj = new GameObject("GroundCheck");
-            checkObj.transform.parent = transform;
-            checkObj.transform.localPosition = new Vector3(0, -0.5f, 0);
-            groundCheck = checkObj.transform;
-        }
     }
     
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         
-        // Включаем ввод только для локального игрока
         if (IsOwner)
         {
             inputActions.Enable();
-            
-            // Подписываемся на события
-            inputActions.SamplePlayer.Jump.performed += OnJump;
         }
+        GetComponent<EventSystem>().enabled = IsOwner;
     }
     
     public override void OnNetworkDespawn()
@@ -64,18 +52,20 @@ public class PlayerController : NetworkBehaviour
         
         if (IsOwner)
         {
-            // Отписываемся от событий
-            inputActions.SamplePlayer.Jump.performed -= OnJump;
             inputActions.Disable();
         }
     }
-    
-    private void Update()
+
+    public void OnMovement(InputAction.CallbackContext context)
     {
         if (!IsOwner) return;
-        
-        // Читаем движение каждый кадр
-        moveInput = inputActions.SamplePlayer.Movement.ReadValue<Vector2>();
+        _moveInput = context.ReadValue<Vector2>();
+    }
+
+    public void OnJump()
+    {
+        if (isGrounded)
+            _jumpPressed = true;
     }
     
     private void FixedUpdate()
@@ -83,25 +73,19 @@ public class PlayerController : NetworkBehaviour
         if (!IsOwner) return;
         
         CheckGround();
-        Move();
+        MoveServerRPC(_moveInput);
         
         // Обрабатываем прыжок
-        if (jumpPressed && isGrounded)
+        if (_jumpPressed && isGrounded)
         {
-            Jump();
-            jumpPressed = false;
+            JumpServerRPC();
+            _jumpPressed = false;
         }
     }
-    
-    private void OnJump(InputAction.CallbackContext context)
-    {
-        if (isGrounded)
-        {
-            jumpPressed = true;
-        }
-    }
-    
-    private void Move()
+
+
+    [ServerRpc]
+    private void MoveServerRPC(Vector2 moveInput)
     {
         // Преобразуем 2D ввод в 3D движение
         Vector3 moveDirection = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
@@ -110,8 +94,9 @@ public class PlayerController : NetworkBehaviour
         
         rb.linearVelocity = velocity;
     }
-    
-    private void Jump()
+
+    [ServerRpc]
+    private void JumpServerRPC()
     {
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -120,23 +105,11 @@ public class PlayerController : NetworkBehaviour
     private void CheckGround()
     {
         isGrounded = Physics.Raycast(
-            groundCheck.position, 
+            gameObject.transform.position - new Vector3(0,0.5f,0), 
             Vector3.down, 
             groundCheckDistance, 
             groundLayer
         );
-    }
-    
-    private void OnDrawGizmosSelected()
-    {
-        if (groundCheck != null)
-        {
-            Gizmos.color = isGrounded ? Color.green : Color.red;
-            Gizmos.DrawLine(
-                groundCheck.position, 
-                groundCheck.position + Vector3.down * groundCheckDistance
-            );
-        }
     }
     
     public override void OnDestroy()
