@@ -3,6 +3,7 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 
+[RequireComponent(typeof(NetworkManager), typeof(UnityTransport))]
 public class NetworkHandler : MonoBehaviour
 {
     public static NetworkHandler Instance { get; private set; }
@@ -13,9 +14,15 @@ public class NetworkHandler : MonoBehaviour
     //public event Action<ulong> OnClientConnected;
     //public event Action<ulong> OnClientDisconnected;
 
-    [SerializeField] NetworkManager networkManager;
-    [SerializeField] UnityTransport unityTransport;
-     
+    [SerializeField] private string worldSceneName = "WorldScene";
+
+    [Header("Have to be assigned")]
+    [SerializeField] private GameObject networkProviderPrefab;
+
+    [Header("Don't have to be assigned")]
+    [SerializeField] private NetworkManager networkManager;
+    [SerializeField] private UnityTransport unityTransport;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -30,7 +37,10 @@ public class NetworkHandler : MonoBehaviour
         // component is on the NetworkManager's object
         DontDestroyOnLoad(gameObject);
 
-        if (networkManager == null) networkManager = NetworkManager.Singleton;
+        networkManager = GetComponent<NetworkManager>();
+        unityTransport = GetComponent<UnityTransport>();
+
+        networkManager.OnServerStarted += SubscribeToSceneEvents;
     }
 
     public void MakeHost()
@@ -83,5 +93,25 @@ public class NetworkHandler : MonoBehaviour
     }
     // Action Handlers }//
 
+    private void SubscribeToSceneEvents()
+    {
+        // Here we try to catch some events
+        networkManager.SceneManager.OnSceneEvent += CatchWorldSceneLoad;
+    }
+    
+    private void CatchWorldSceneLoad(SceneEvent sceneEvent)
+    {
+        if (!(sceneEvent.SceneEventType == SceneEventType.LoadComplete && networkManager.IsServer))
+            return;
+        if (sceneEvent.SceneName == worldSceneName)
+            SpawnProvider();
+    }
+
+    private void SpawnProvider()
+    {
+        GameObject instance = Instantiate(networkProviderPrefab, Vector3.zero, Quaternion.identity);
+        NetworkObject networkObject = instance.GetComponent<NetworkObject >();
+        networkObject.Spawn();
+    }
 
 }
