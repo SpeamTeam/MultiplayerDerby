@@ -140,8 +140,8 @@ public class CarNavMeshAgent : MonoBehaviour
                 hasPath = pathCorners.Length > 1;
                 currentWaypointIndex = 1; // 0 - текущая позиция
 
-                Debug.Log($"[CarNav] Путь рассчитан. Точек: {pathCorners.Length}, " +
-                          $"Статус: {navMeshPath.status}");
+                //Debug.Log($"[CarNav] Путь рассчитан. Точек: {pathCorners.Length}, " +
+                //          $"Статус: {navMeshPath.status}");
             }
             else
             {

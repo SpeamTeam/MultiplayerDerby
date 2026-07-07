@@ -1,4 +1,4 @@
-using UnityEngine;
+п»їusing UnityEngine;
 
 public class CarController : MonoBehaviour
 {
@@ -24,23 +24,38 @@ public class CarController : MonoBehaviour
     public float antiRollForce = 5000f;
     public float centerOfMassOffset = -0.5f;
 
+    [Header("Health")]
+    public float maxHealth = 100f;
+    public ParticleSystem smokeEffect;
+    public ParticleSystem fireEffect;
+    public float destroyDelay = 3f;
+
+    // РЎРѕР±С‹С‚РёСЏ РґР»СЏ CarCollision Рё UI
+    public System.Action<float> OnHealthChanged;  // 0..1
+    public System.Action OnDeath;
+
+    public float CurrentHealth { get; private set; }
+    public bool IsDead { get; private set; }
+    public float CurrentSpeed => rb != null ? rb.linearVelocity.magnitude * 3.6f : 0f;
+    public Rigidbody Rb => rb;
+
     private Rigidbody rb;
     private float currentMotorInput;
     private float currentSteerInput;
     private float currentBrakeInput;
 
-    public float CurrentSpeed => rb != null ? rb.linearVelocity.magnitude * 3.6f : 0f; // км/ч
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-
-        // Смещение центра масс вниз для устойчивости
         rb.centerOfMass = new Vector3(0f, centerOfMassOffset, 0f);
+        CurrentHealth = maxHealth;
     }
 
     private void FixedUpdate()
     {
+        if (IsDead)
+            SetInputs(0f, 0f, 1f);
+
         ApplyMotor();
         ApplySteering();
         ApplyBrakes();
@@ -48,12 +63,8 @@ public class CarController : MonoBehaviour
         UpdateWheelMeshes();
     }
 
-    /// <summary>
-    /// Установка входных данных управления
-    /// </summary>
-    /// <param name="motor">-1 (назад) до 1 (вперёд)</param>
-    /// <param name="steer">-1 (влево) до 1 (вправо)</param>
-    /// <param name="brake">0 до 1</param>
+    // в”Ђв”Ђв”Ђ РЈРїСЂР°РІР»РµРЅРёРµ в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+
     public void SetInputs(float motor, float steer, float brake)
     {
         currentMotorInput = Mathf.Clamp(motor, -1f, 1f);
@@ -63,12 +74,8 @@ public class CarController : MonoBehaviour
 
     private void ApplyMotor()
     {
-        float speedKmh = CurrentSpeed;
-
-        // Ограничение скорости
-        float torqueMultiplier = speedKmh < maxSpeed ? 1f : 0f;
+        float torqueMultiplier = CurrentSpeed < maxSpeed ? 1f : 0f;
         float motorTorque = currentMotorInput * maxMotorTorque * torqueMultiplier;
-
         wheelRL.motorTorque = motorTorque;
         wheelRR.motorTorque = motorTorque;
     }
@@ -76,8 +83,6 @@ public class CarController : MonoBehaviour
     private void ApplySteering()
     {
         float steerAngle = currentSteerInput * maxSteerAngle;
-
-        // Ackermann steering (приближение)
         wheelFL.steerAngle = steerAngle;
         wheelFR.steerAngle = steerAngle;
     }
@@ -85,16 +90,12 @@ public class CarController : MonoBehaviour
     private void ApplyBrakes()
     {
         float brakeTorque = currentBrakeInput * maxBrakeTorque;
-
         wheelFL.brakeTorque = brakeTorque;
         wheelFR.brakeTorque = brakeTorque;
         wheelRL.brakeTorque = brakeTorque;
         wheelRR.brakeTorque = brakeTorque;
     }
 
-    /// <summary>
-    /// Анти-крен для предотвращения переворота
-    /// </summary>
     private void ApplyAntiRoll()
     {
         ApplyAntiRollBar(wheelFL, wheelFR);
@@ -139,9 +140,35 @@ public class CarController : MonoBehaviour
     private void UpdateWheelMesh(WheelCollider col, Transform mesh)
     {
         if (mesh == null) return;
-
         col.GetWorldPose(out Vector3 pos, out Quaternion rot);
         mesh.position = pos;
         mesh.rotation = rot;
+    }
+
+    // в”Ђв”Ђв”Ђ Р—РґРѕСЂРѕРІСЊРµ в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ
+
+    public void TakeDamage(float amount)
+    {
+        if (IsDead) return;
+
+        CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
+        OnHealthChanged?.Invoke(CurrentHealth / maxHealth);
+
+        if (smokeEffect != null && CurrentHealth / maxHealth < 0.5f && !smokeEffect.isPlaying)
+            smokeEffect.Play();
+
+        if (CurrentHealth <= 0f)
+            Die();
+    }
+
+    private void Die()
+    {
+        IsDead = true;
+        OnDeath?.Invoke();
+
+        if (smokeEffect != null) smokeEffect.Stop();
+        if (fireEffect != null) fireEffect.Play();
+
+        Destroy(gameObject, destroyDelay);
     }
 }
