@@ -9,9 +9,11 @@ public class SpawnPointsScript : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != this)
+        if (Instance != null && Instance != this)
         {
+            Debug.Log(gameObject + "is being destroyd");
             Destroy(gameObject);
+            return;
         }
         Instance = this;
     }

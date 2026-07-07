@@ -1585,7 +1585,7 @@ MonoBehaviour:
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
     Address: 127.0.0.1
-    Port: 7777
+    Port: 6767
     WebSocketPath: /
     ServerListenAddress: 127.0.0.1
     ClientBindPort: 0
@@ -1662,6 +1662,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ad7f37839ec0004d96d5ae825098384, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkHandler
+  worldSceneName: WorldScene
   networkProviderPrefab: {fileID: 7711718117008106635, guid: a41bc877f77ee7146afaadaed4226ceb, type: 3}
   networkManager: {fileID: 0}
   unityTransport: {fileID: 0}

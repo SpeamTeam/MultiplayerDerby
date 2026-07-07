@@ -25,7 +25,7 @@ public class MenuManager : MonoBehaviour
         try {
             if (ipPortInputField.text.Equals("")) {
                 ip = "127.0.0.1";
-                port = 7777;
+                port = 6767;
             }
             else
             {

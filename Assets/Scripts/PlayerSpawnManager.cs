@@ -1,90 +1,52 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerSpawnManager : NetworkBehaviour
 {
-    public static PlayerSpawnManager Instance { get; private set; }
+    [SerializeField] private GameObject samplePlayerPrefab;
 
-    [Header("Spawn Settings")]
-    [SerializeField] private GameObject playerPrefab;
-    [SerializeField] private SpawnPointsScript spawnPointsScript;
-    private Transform[] spawnPoints;
+    private List<ulong> spawnedPlayers;
 
-    private void Start()
+    private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-
-        if (spawnPointsScript == null)
-        {
-            spawnPointsScript = SpawnPointsScript.Instance;
-        }
-
-        if (spawnPointsScript != null)
-        {
-            spawnPoints = spawnPointsScript.getSpawnPoints();
-            Debug.Log(spawnPointsScript.ToString());
-        }
-        else
-        { Debug.LogWarning("No Spawn Points!"); }
+        if (!IsServer) return;
     }
-
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
+        spawnedPlayers = new List<ulong>();
 
-        // Подписываемся на событие завершения загрузки сцены
-        NetworkManager.SceneManager.OnLoadEventCompleted += OnSceneLoadCompleted;
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+
+        SpawnPlayer(NetworkManager.Singleton.LocalClientId);
     }
 
     public override void OnNetworkDespawn()
     {
-        if (IsServer && NetworkManager.SceneManager != null)
-        {
-            NetworkManager.SceneManager.OnLoadEventCompleted -= OnSceneLoadCompleted;
-        }
+        if (!IsServer) return;
+
+        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+    }
+    
+    private void OnClientConnected(ulong clientID)
+    {
+        SpawnPlayer(clientID);
     }
 
-    private void OnSceneLoadCompleted(
-        string sceneName, 
-        UnityEngine.SceneManagement.LoadSceneMode loadSceneMode, 
-        List<ulong> clientsCompleted, 
-        List<ulong> clientsTimedOut)
+
+    private void SpawnPlayer(ulong clientID)
     {
-        // Спавним игрока только для тех, кто загрузил нужную сцену
-        if (sceneName != "WorldScene") return;
+        if (!IsServer) return;
+        if (spawnedPlayers.Contains(clientID)) return;
 
-        foreach (ulong clientId in clientsCompleted)
-        {
-            SpawnPlayer(clientId);
-        }
-    }
-
-    private void SpawnPlayer(ulong clientId)
-    {
-        Vector3 spawnPos = GetSpawnPoint();
-        
-        GameObject playerInstance = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
-        
-        NetworkObject networkObject = playerInstance.GetComponent<NetworkObject>();
-        networkObject.SpawnAsPlayerObject(clientId);
-        
-        Debug.Log($"Player spawned for client {clientId} at {spawnPos}");
-    }
-
-    private Vector3 GetSpawnPoint()
-    {
-        if (spawnPoints == null || spawnPoints.Length == 0)
-        {
-            return Vector3.zero;
-        }
-
-        int randomIndex = Random.Range(0, spawnPoints.Length);
-        return spawnPoints[randomIndex].position;
+        // TODO: Change spawn position
+        GameObject instance = Instantiate(samplePlayerPrefab, Vector3.zero, Quaternion.identity);
+        NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+        networkObject.SpawnAsPlayerObject(clientID);
+        spawnedPlayers.Add(clientID);
+        Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
+        Debug.Log(spawnedPlayers.ToArray().ToString());
     }
 }
