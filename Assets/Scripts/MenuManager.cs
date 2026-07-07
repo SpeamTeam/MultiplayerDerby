@@ -8,6 +8,11 @@ public class MenuManager : MonoBehaviour
     [SerializeField] NetworkHandler networkHandler;
     [SerializeField] TMP_InputField ipPortInputField;
 
+    private void Start()
+    {
+        networkHandler = NetworkHandler.Instance;
+    }
+
     public void OnHostPressed()
     {
         networkHandler.MakeHost();
@@ -18,10 +23,17 @@ public class MenuManager : MonoBehaviour
         ushort port;
 
         try {
-            string[] temp = ipPortInputField.text.Split(":");
-            ip = temp[0];
-            port = ushort.Parse(temp[1]);
-            Debug.Log($"IP: {ip}, PORT: {port}");
+            if (ipPortInputField.text.Equals("")) {
+                ip = "127.0.0.1";
+                port = 7777;
+            }
+            else
+            {
+                string[] temp = ipPortInputField.text.Split(":");
+                ip = temp[0];
+                port = ushort.Parse(temp[1]);
+                Debug.Log($"IP: {ip}, PORT: {port}");
+            }
             
 
             networkHandler.MakeClient(ip, port);

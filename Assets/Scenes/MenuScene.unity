@@ -1250,7 +1250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94045fe8d26eedb4d9c3ac5f547677a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  networkHandler: {fileID: 2045331305}
+  networkHandler: {fileID: 0}
   ipPortInputField: {fileID: 2083914099}
 --- !u!1 &1773519472
 GameObject:
@@ -1662,8 +1662,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ad7f37839ec0004d96d5ae825098384, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkHandler
-  networkManager: {fileID: 2045331303}
-  unityTransport: {fileID: 2045331302}
+  networkProviderPrefab: {fileID: 7711718117008106635, guid: a41bc877f77ee7146afaadaed4226ceb, type: 3}
+  networkManager: {fileID: 0}
+  unityTransport: {fileID: 0}
 --- !u!1 &2083914097
 GameObject:
   m_ObjectHideFlags: 0

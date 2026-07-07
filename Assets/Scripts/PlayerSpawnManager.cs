@@ -11,7 +11,7 @@ public class PlayerSpawnManager : NetworkBehaviour
     [SerializeField] private SpawnPointsScript spawnPointsScript;
     private Transform[] spawnPoints;
 
-    private void Awake()
+    private void Start()
     {
         if (Instance != null && Instance != this)
         {
@@ -20,7 +20,18 @@ public class PlayerSpawnManager : NetworkBehaviour
         }
         Instance = this;
 
-        spawnPoints = spawnPointsScript.getSpawnPoints();
+        if (spawnPointsScript == null)
+        {
+            spawnPointsScript = SpawnPointsScript.Instance;
+        }
+
+        if (spawnPointsScript != null)
+        {
+            spawnPoints = spawnPointsScript.getSpawnPoints();
+            Debug.Log(spawnPointsScript.ToString());
+        }
+        else
+        { Debug.LogWarning("No Spawn Points!"); }
     }
 
     public override void OnNetworkSpawn()
