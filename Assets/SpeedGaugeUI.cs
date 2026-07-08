@@ -1,47 +1,98 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// Шкала скорости (дашборд локального игрока, screen-space overlay).
+/// Спидометр в стиле цифровой приборки Honda Civic: крупная сегментная
+/// синяя цифра (шрифт DSEG через TextMeshPro) + боковые "крылья" из
+/// сегментов, загорающихся по мере роста скорости.
 ///
-/// В ОТЛИЧИЕ от HealthBarUI, здесь НЕЛЬЗЯ обойтись без опроса — скорость
-/// меняется непрерывно, пока едешь, событием это не заменить.
-/// Экономим иначе: опрашиваем в FixedUpdate (частота физического тика,
-/// обычно 50 Гц), а не в Update (частота кадров рендера, которая на
-/// мощном ПК может быть 144+ Гц) — итоговая плавность для игрока та же,
-/// т.к. скорость и так считается физикой с частотой FixedUpdate, а
-/// чаще физического тика она просто не меняется.
+/// ОПТИМИЗАЦИЯ: скорость меняется непрерывно, поэтому опрос неизбежен, но
+/// крутится он в FixedUpdate (частота физики ~50 Гц), а не в Update
+/// (частота кадров, которая на мощном ПК может быть 144+ Гц). Быстрее
+/// физического тика скорость всё равно не меняется, так что для игрока
+/// плавность та же, а вызовов меньше.
 ///
-/// СТРУКТУРА В СЦЕНЕ: обычный screen-space Canvas -> Slider для шкалы
-/// (+ опционально Text для числового значения). Этот скрипт вешается
-/// рядом, targetCar указывает на Rigidbody машины ЛОКАЛЬНОГО игрока
-/// (не всех машин на арене — спидометр показывает только свою скорость).
+/// СТРУКТУРА В СЦЕНЕ (screen-space Canvas, правый верхний угол):
+///   Panel (фон-окошко)
+///    ├── SpeedText  (TMP, шрифт DSEG, синий + Glow в материале)
+///    ├── UnitText   (TMP, "km/h")
+///    ├── WingLeft   (пустой контейнер) -> N штук Image (сегменты)
+///    └── WingRight  (пустой контейнер) -> N штук Image (сегменты)
+/// Этот скрипт вешается на Panel. targetCar = Rigidbody СВОЕЙ машины.
 /// </summary>
 public class SpeedGaugeUI : MonoBehaviour
 {
+    [Header("Источник скорости")]
+    [Tooltip("Rigidbody машины ЛОКАЛЬНОГО игрока (не всех на арене)")]
     public Rigidbody targetCar;
-    public Slider speedSlider;
-    public Text speedLabel; // если в проекте TextMeshPro — замени на TMP_Text
 
-    [Tooltip("Скорость (м/с), соответствующая полной шкале")]
-    public float maxSpeedForGauge = 30f;
-
-    [Tooltip("Показывать км/ч в тексте вместо м/с")]
+    [Header("Цифра")]
+    [Tooltip("TMP-текст с цифрой скорости (шрифт DSEG)")]
+    public TMP_Text speedText;
+    [Tooltip("Показывать км/ч (иначе м/с)")]
     public bool displayKmh = true;
+
+    [Header("Сегменты-крылья (Image по бокам)")]
+    [Tooltip("Сегменты ЛЕВОГО крыла, по порядку ОТ ЦЕНТРА наружу")]
+    public Image[] leftWingSegments;
+    [Tooltip("Сегменты ПРАВОГО крыла, по порядку ОТ ЦЕНТРА наружу")]
+    public Image[] rightWingSegments;
+
+    [Tooltip("Скорость (м/с), при которой все сегменты крыла загораются")]
+    public float maxSpeedForWings = 50f;
+
+    [Header("Цвета")]
+    public Color litColor = new Color(0.36f, 0.78f, 1f, 1f);   // синий свет
+    public Color dimColor = new Color(0.07f, 0.22f, 0.31f, 1f); // приглушённый
+
+    [Header("Сглаживание отображаемой скорости")]
+    [Tooltip("Насколько плавно цифра догоняет реальную скорость (0 = мгновенно)")]
+    public float smoothing = 8f;
+
+    private float displayedSpeed;
 
     private void FixedUpdate()
     {
         if (targetCar == null) return;
 
-        float speed = targetCar.linearVelocity.magnitude;
+        float realSpeed = targetCar.linearVelocity.magnitude;
 
-        if (speedSlider != null)
-            speedSlider.value = Mathf.Clamp01(speed / maxSpeedForGauge);
+        // Плавное догоняние — чтобы цифра не дёргалась на резких толчках.
+        displayedSpeed = smoothing > 0f
+            ? Mathf.Lerp(displayedSpeed, realSpeed, smoothing * Time.fixedDeltaTime)
+            : realSpeed;
 
-        if (speedLabel != null)
+        UpdateText();
+        UpdateWings();
+    }
+
+    private void UpdateText()
+    {
+        if (speedText == null) return;
+        float shown = displayKmh ? displayedSpeed * 3.6f : displayedSpeed;
+        speedText.text = Mathf.RoundToInt(shown).ToString();
+    }
+
+    private void UpdateWings()
+    {
+        float fill = Mathf.Clamp01(displayedSpeed / maxSpeedForWings);
+
+        ApplyWing(leftWingSegments, fill);
+        ApplyWing(rightWingSegments, fill);
+    }
+
+    // Сегменты в массиве идут ОТ ЦЕНТРА наружу: ближние к цифре
+    // загораются первыми, дальние — при большей скорости.
+    private void ApplyWing(Image[] segments, float fill)
+    {
+        if (segments == null || segments.Length == 0) return;
+
+        int litCount = Mathf.RoundToInt(fill * segments.Length);
+        for (int i = 0; i < segments.Length; i++)
         {
-            float displaySpeed = displayKmh ? speed * 3.6f : speed;
-            speedLabel.text = Mathf.RoundToInt(displaySpeed) + (displayKmh ? " км/ч" : " м/с");
+            if (segments[i] == null) continue;
+            segments[i].color = i < litCount ? litColor : dimColor;
         }
     }
 }
