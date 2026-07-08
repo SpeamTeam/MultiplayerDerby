@@ -7,13 +7,17 @@ namespace Assets.Scripts.Network.Spawn
 {
     public class PlayerSpawnManager : NetworkBehaviour
     {
-        [SerializeField] private GameObject samplePlayerPrefab;
+        private GameObject playerPrefab;
 
         private List<ulong> spawnedPlayers;
 
         public override void OnNetworkSpawn()
         {
             if (!IsServer) return;
+
+            GameConfig gameConfig = GameManager.Instance.Config;
+            playerPrefab = gameConfig.playerPrefab;
+
             spawnedPlayers = new List<ulong>();
 
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
@@ -40,7 +44,7 @@ namespace Assets.Scripts.Network.Spawn
             if (spawnedPlayers.Contains(clientID)) return;
 
             // TODO: Change spawn position
-            GameObject instance = Instantiate(samplePlayerPrefab, Vector3.zero, Quaternion.identity);
+            GameObject instance = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
             NetworkObject networkObject = instance.GetComponent<NetworkObject>();
             networkObject.SpawnAsPlayerObject(clientID);
             spawnedPlayers.Add(clientID);

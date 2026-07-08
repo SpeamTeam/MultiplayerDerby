@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dedbaa0b556a764da35ac391911764a, type: 3}
+  m_Name: gameconfig
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.GameConfig
+  playerPrefab: {fileID: 8317518333908309311, guid: 21d7ecde1d40f49499ae7c89fb3104de, type: 3}
+  enemyPrefab: {fileID: 0}
+  cameraPrefab: {fileID: 3454116302175888723, guid: f7aef4c37b7f2cd4bb1a7eed978a3656, type: 3}
+  worldSceneName: WorldScene
