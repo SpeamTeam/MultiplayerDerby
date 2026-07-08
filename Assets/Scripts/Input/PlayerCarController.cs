@@ -73,21 +73,16 @@ public class PlayerCarController : NetworkBehaviour
         steerInput = context.ReadValue<float>();
     }
 
-    public void OnBrake(bool value)
+    public void OnBrake(InputAction.CallbackContext context)
     {
-        isBraking = value;
+        if (context.performed)
+            isBraking = true;
+        else if (context.canceled)
+            isBraking = false;
     }
 
     void Update()
     {
-        moveInput = inputActions.Driving.Accelerate.ReadValue<float>();
-        steerInput = inputActions.Driving.Steer.ReadValue<float>();
-        isBraking = inputActions.Driving.Brake.IsPressed();
-
-        // Ѕуст читаем напр€мую с клавиатуры (не через Input asset) Ч быстрый путь.
-        // Keyboard.current может быть null (нет клавиатуры) Ч поэтому проверка.
-        isBoosting = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
-
         UpdateWheelVisual(wheelFL, visualFL);
         UpdateWheelVisual(wheelFR, visualFR);
         UpdateWheelVisual(wheelRL, visualRL);
@@ -100,8 +95,6 @@ public class PlayerCarController : NetworkBehaviour
         // Ѕуст добавл€ет т€гу, только пока скорость ниже boostMaxSpeed Ч
         // иначе на WheelCollider машину разгон€ло бы неограниченно.
         float currentForce = motorForce;
-        if (isBoosting && rb.linearVelocity.magnitude < boostMaxSpeed)
-            currentForce *= boostMultiplier;
 
         wheelRL.motorTorque = moveInput * currentForce;
         wheelRR.motorTorque = moveInput * currentForce;
@@ -122,7 +115,7 @@ public class PlayerCarController : NetworkBehaviour
 
     private void UpdateWheelVisual(WheelCollider col, Transform visual)
     {
-        // if (visual == null) return;
+        if (visual == null) return;
 
         // col.GetWorldPose(out Vector3 position, out Quaternion rotation);
         // visual.position = position;

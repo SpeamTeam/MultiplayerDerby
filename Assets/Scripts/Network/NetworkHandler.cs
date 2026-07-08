@@ -13,9 +13,6 @@ namespace Assets.Scripts.Network
         public event Action<ulong> OnClientConnected;
         public event Action<ulong> OnClientDisconnected;
 
-        //public event Action<ulong> OnClientConnected;
-        //public event Action<ulong> OnClientDisconnected;
-
         public string worldSceneName = "WorldScene";
 
         [Header("Have to be assigned")]
