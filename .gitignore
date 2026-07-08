@@ -41,7 +41,5 @@ sysinfo.txt
 *.apk
 *.unitypackage
 Logs
-UserSettings
-Logs
-Logs
+MultiplayerDerby.slnx
 UserSettings
