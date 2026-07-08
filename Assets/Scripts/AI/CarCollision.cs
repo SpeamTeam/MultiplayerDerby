@@ -19,6 +19,12 @@ namespace Assets.Scripts.AI
         public float deformRadius = 0.6f;
         public float maxDeformDepth = 0.25f;
 
+        [Header("Collider Update")]
+        [Tooltip("Обновлять MeshCollider после каждой деформации")]
+        public bool updateMeshColliders = true;
+        [Tooltip("Если MeshCollider не найден на том же объекте, что и MeshFilter — искать на дочерних объектах")]
+        public bool searchInChildren = true;
+
         [Header("Effects")]
         public ParticleSystem sparksPrefab;
         public AudioSource audioSource;
@@ -36,6 +42,8 @@ namespace Assets.Scripts.AI
         private Vector3[][] originalVerts;
         // Группы дублированных вершин по оригинальной позиции
         private Dictionary<Vector3Int, List<int>>[] vertexGroups;
+        // MeshCollider, привязанный к каждому MeshFilter
+        private MeshCollider[] linkedColliders;
 
         private void Awake()
         {
@@ -51,20 +59,21 @@ namespace Assets.Scripts.AI
             deformedVerts = new Vector3[deformableMeshes.Length][];
             originalVerts = new Vector3[deformableMeshes.Length][];
             vertexGroups = new Dictionary<Vector3Int, List<int>>[deformableMeshes.Length];
+            linkedColliders = new MeshCollider[deformableMeshes.Length];
 
             for (int m = 0; m < deformableMeshes.Length; m++)
             {
                 if (deformableMeshes[m] == null) continue;
 
+                // ── Клонируем меш, чтобы не портить оригинальный ассет ──────────
                 Mesh clone = Instantiate(deformableMeshes[m].sharedMesh);
                 clone.name = deformableMeshes[m].sharedMesh.name + "_deformed";
                 deformableMeshes[m].mesh = clone;
 
                 deformedVerts[m] = clone.vertices;
-                // Сохраняем копию оригинальных позиций — они никогда не меняются
                 originalVerts[m] = (Vector3[])deformedVerts[m].Clone();
 
-                // Строим группы по оригинальным позициям
+                // ── Строим группы по оригинальным позициям ──────────────────────
                 vertexGroups[m] = new Dictionary<Vector3Int, List<int>>();
                 for (int i = 0; i < originalVerts[m].Length; i++)
                 {
@@ -75,7 +84,57 @@ namespace Assets.Scripts.AI
 
                     vertexGroups[m][key].Add(i);
                 }
+
+                // ── Ищем MeshCollider, связанный с этим MeshFilter ──────────────
+                linkedColliders[m] = FindLinkedCollider(deformableMeshes[m]);
+
+                if (linkedColliders[m] != null)
+                {
+                    // Назначаем клонированный меш коллайдеру сразу при старте
+                    ApplyMeshToCollider(linkedColliders[m], clone);
+                    Debug.Log($"[CarCollision] MeshCollider найден для '{deformableMeshes[m].name}'.");
+                }
+                else
+                {
+                    Debug.LogWarning($"[CarCollision] MeshCollider не найден для '{deformableMeshes[m].name}'. " +
+                                     "Коллайдер этого меша обновляться не будет.");
+                }
             }
+        }
+
+        /// <summary>
+        /// Ищет MeshCollider на том же GameObject, что и переданный MeshFilter.
+        /// Если не нашёл и разрешён поиск в дочерних — ищет там.
+        /// </summary>
+        private MeshCollider FindLinkedCollider(MeshFilter filter)
+        {
+            // Сначала ищем на том же объекте
+            MeshCollider col = filter.GetComponent<MeshCollider>();
+            if (col != null) return col;
+
+            // Затем ищем на родительском объекте (сам CarCollision)
+            col = GetComponent<MeshCollider>();
+            if (col != null) return col;
+
+            // Наконец — в дочерних объектах корневого объекта
+            if (searchInChildren)
+            {
+                col = GetComponentInChildren<MeshCollider>();
+                if (col != null) return col;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Присваивает меш коллайдеру. Временно переключает convex,
+        /// чтобы Unity принял обновлённую геометрию корректно.
+        /// </summary>
+        private static void ApplyMeshToCollider(MeshCollider collider, Mesh mesh)
+        {
+            // Назначение null перед новым мешем сбрасывает внутренний кэш физического движка
+            collider.sharedMesh = null;
+            collider.sharedMesh = mesh;
         }
 
         private Vector3Int RoundVertex(Vector3 v)
@@ -123,12 +182,9 @@ namespace Assets.Scripts.AI
                 Vector3[] origVerts = originalVerts[m];
 
                 Vector3 localPoint = t.InverseTransformPoint(worldPoint);
-
-                // Центр меша в локальных координатах
                 Vector3 localCenter = t.InverseTransformPoint(transform.position);
 
                 // Направление вдавливания: от точки удара к центру машины
-                // Всегда смотрит внутрь независимо от нормали контакта
                 Vector3 inwardDir = (localCenter - localPoint).normalized;
 
                 var processedGroups = new HashSet<Vector3Int>();
@@ -145,7 +201,6 @@ namespace Assets.Scripts.AI
                     float falloff = 1f - (dist / deformRadius);
                     falloff *= falloff;
 
-                    // Небольшой разброс перпендикулярно направлению вдавливания
                     Vector3 randomOffset = Vector3.ProjectOnPlane(
                         Random.insideUnitSphere * 0.08f,
                         inwardDir
@@ -169,6 +224,10 @@ namespace Assets.Scripts.AI
                     mesh.vertices = verts;
                     RecalculateFlatNormals(mesh);
                     mesh.RecalculateBounds();
+
+                    // ── Обновляем MeshCollider ───────────────────────────────────
+                    if (updateMeshColliders && linkedColliders != null && linkedColliders[m] != null)
+                        ApplyMeshToCollider(linkedColliders[m], mesh);
                 }
             }
         }

@@ -1,0 +1,14 @@
+Thank you for purchasing the new style free Sample
+
+If you like the pack please consider leaving a review as this is very helpful for me.
+
+This pack includes a free sample for the upcoming new style!
+To use this 3D model in your scene just go to Prefabs/ After that you will be able to choose 
+if you want the prefabs to just be a simple mesh, or include
+pre-made colliders to save time.
+
+To change the color of a your car locate Materials/Color Variants/ and drag the color variant of your choice
+on the car.
+
+If you find any errors or bugs in this pack you can email gudamoregames@gmail.com about it, and it should be
+fixed shortly.
