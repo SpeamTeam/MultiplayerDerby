@@ -221,6 +221,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &240216344 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4280860464342721655, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+  m_PrefabInstance: {fileID: 461697784593394885}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b5d7c088409d9a40b7b09aa707777f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineOrbitalFollow
 --- !u!1 &243035658
 GameObject:
   m_ObjectHideFlags: 0
@@ -1148,6 +1159,7 @@ MonoBehaviour:
   minDriftSpeed: 3
   driftSteerThreshold: 0.25
   driftYawAssist: 4000
+  driftForwardAssist: 0.35
   steerSpeed: 10
 --- !u!54 &1161906665
 Rigidbody:
@@ -1157,7 +1169,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1161906657}
   serializedVersion: 5
-  m_Mass: 4500
+  m_Mass: 1700
   m_LinearDamping: 0.05
   m_AngularDamping: 3
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -1710,6 +1722,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1404983766050666109, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2043987535202391199, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
       propertyPath: m_LocalPosition.x
       value: 15.26
@@ -1750,9 +1766,41 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2581158980976414701, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: orbital
+      value: 
+      objectReference: {fileID: 240216344}
+    - target: {fileID: 2581158980976414701, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: invertVertical
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2581158980976414701, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: idleReturnDelay
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 2847609266289519275, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
       propertyPath: m_Name
       value: CameraObject
+      objectReference: {fileID: 0}
+    - target: {fileID: 4280860464342721655, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: HorizontalAxis.Center
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4280860464342721655, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: VerticalAxis.Recentering.Wait
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4280860464342721655, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: HorizontalAxis.Recentering.Wait
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4280860464342721655, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: VerticalAxis.Recentering.Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4280860464342721655, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
+      propertyPath: HorizontalAxis.Recentering.Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8320998283931187820, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
       propertyPath: Target.TrackingTarget
