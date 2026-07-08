@@ -258,12 +258,12 @@ GameObject:
   m_Component:
   - component: {fileID: 2474442778618356843}
   - component: {fileID: 7839006402997340107}
+  - component: {fileID: 7228090581171337936}
   - component: {fileID: 7179800884239459324}
   - component: {fileID: 3634423335544749178}
   - component: {fileID: 2925097778551949484}
   - component: {fileID: 3826756364511809366}
   - component: {fileID: 2055513172120946562}
-  - component: {fileID: 7228090581171337936}
   - component: {fileID: 641327039744382590}
   - component: {fileID: 6966120485727544238}
   - component: {fileID: 1745659819308106975}
@@ -334,6 +334,32 @@ MonoBehaviour:
   m_DefaultActionMap: Driving
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &7228090581171337936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8317518333908309311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 1715311010
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &7179800884239459324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -346,6 +372,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0e71c53ff74254488bdab46e0c24320, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCarController
+  ShowTopMostFoldoutHeaderGroup: 1
   wheelFL: {fileID: 7420035953782152227}
   wheelFR: {fileID: 281272498250451144}
   wheelRL: {fileID: 9221597086271779396}
@@ -444,32 +471,6 @@ MonoBehaviour:
   killCarOnEject: 1
   disableControlOnLaunch: 1
   forceEjectTimeout: 5
---- !u!114 &7228090581171337936
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8317518333908309311}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1228118592
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  <InScenePlaced>k__BackingField: 0
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
 --- !u!114 &641327039744382590
 MonoBehaviour:
   m_ObjectHideFlags: 0
