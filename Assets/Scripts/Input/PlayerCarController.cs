@@ -3,33 +3,33 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 
-public class PlayerCarController : MonoBehaviour
+public class PlayerCarController : NetworkBehaviour
 {
     [Header("Wheels Colliders")]
-    public WheelCollider wheelFL;
-    public WheelCollider wheelFR;
-    public WheelCollider wheelRL;
-    public WheelCollider wheelRR;
+    [SerializeField] private WheelCollider wheelFL;
+    [SerializeField] private WheelCollider wheelFR;
+    [SerializeField] private WheelCollider wheelRL;
+    [SerializeField] private WheelCollider wheelRR;
 
     [Header("Wheels Visuals")]
-    public Transform visualFL;
-    public Transform visualFR;
-    public Transform visualRL;
-    public Transform visualRR;
+    [SerializeField] private Transform visualFL;
+    [SerializeField] private Transform visualFR;
+    [SerializeField] private Transform visualRL;
+    [SerializeField] private Transform visualRR;
 
     [Header("Settings")]
-    public float motorForce = 1500f;
-    public float maxSteerAngle = 30f;
-    public float brakeForce = 3000f;
+    [SerializeField] private float motorForce = 1500f;
+    [SerializeField] private float maxSteerAngle = 30f;
+    [SerializeField] private float brakeForce = 3000f;
 
     [Header("Boost (Shift)")]
     [Tooltip("Во сколько раз больше тяги при зажатом Shift")]
-    public float boostMultiplier = 2f;
+    [SerializeField] private float boostMultiplier = 2f;
     [Tooltip("Максимальная скорость (м/с), выше которой буст перестаёт добавлять тягу — чтобы не разгонялось бесконечно")]
-    public float boostMaxSpeed = 35f;
+    [SerializeField] private float boostMaxSpeed = 35f;
 
     [Header("Steering Smoothing")] // Настройки плавности руля
-    public float steerSpeed = 10f; // Чем меньше значение, тем медленнее крутится руль
+    [SerializeField] private float steerSpeed = 10f; // Чем меньше значение, тем медленнее крутится руль
 
     private Rigidbody rb;
     private float moveInput;
@@ -47,8 +47,16 @@ public class PlayerCarController : MonoBehaviour
         inputActions = new CarControls();
     }
 
-    private void OnEnable() => inputActions.Enable();
-    private void OnDisable() => inputActions.Disable();
+    private void OnEnable()
+    {
+        if (!IsOwner)
+            inputActions.Enable();
+    }
+    private void OnDisable()
+    {
+        if (!IsOwner)
+            inputActions.Disable();
+    }
 
     void Start()
     {
@@ -114,10 +122,10 @@ public class PlayerCarController : MonoBehaviour
 
     private void UpdateWheelVisual(WheelCollider col, Transform visual)
     {
-        if (visual == null) return;
+        // if (visual == null) return;
 
-        col.GetWorldPose(out Vector3 position, out Quaternion rotation);
-        visual.position = position;
-        visual.rotation = rotation;
+        // col.GetWorldPose(out Vector3 position, out Quaternion rotation);
+        // visual.position = position;
+        // visual.rotation = rotation;
     }
 }
