@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -15,10 +16,11 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(CarHealth))]
 [RequireComponent(typeof(PlayerScore))]
-[RequireComponent(typeof(DriverEjection))]
+// [RequireComponent(typeof(DriverEjection))]
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerCarController))]
-public class CarAgent : MonoBehaviour
+[RequireComponent(typeof(CameraFollow))]
+public class CarAgent : NetworkBehaviour
 {
     [Header("Ссылки")]
     public PlayerCarController controller;      // чтобы отключать управление при смерти
@@ -30,15 +32,22 @@ public class CarAgent : MonoBehaviour
 
     private CarHealth health;
     private PlayerScore score;
-    private DriverEjection driverEjection;
+    // private DriverEjection driverEjection;
 
     private void Awake()
     {
         health = GetComponent<CarHealth>();
         score = GetComponent<PlayerScore>();
-        driverEjection = GetComponent<DriverEjection>(); // может отсутствовать — необязательный компонент
+        // driverEjection = GetComponent<DriverEjection>(); // может отсутствовать — необязательный компонент
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (controller == null) controller = GetComponent<PlayerCarController>();
+    }
+    private void Start()
+    {
+        if (!IsOwner) return;
+
+        CameraFollow cameraFollow = GetComponent<CameraFollow>();
+        if (cameraFollow != null) cameraFollow.InitializeCamera();
     }
 
     private void OnEnable()
@@ -106,7 +115,7 @@ public class CarAgent : MonoBehaviour
         transform.SetPositionAndRotation(spawnPos, spawnRot);
 
         health.ResetState();
-        driverEjection?.ResetState();
+        // driverEjection?.ResetState();
         score.OnRespawn(); // сбрасывает коэффициент за время жизни, totalScore не трогает
 
         if (controller != null) controller.enabled = true;

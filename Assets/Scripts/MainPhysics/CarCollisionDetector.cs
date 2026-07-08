@@ -50,9 +50,6 @@ public class CarCollisionDetector : MonoBehaviour
     [Tooltip("Если нормаль контакта почти вертикальная (машина подпрыгнула на кочке/бордюре или чиркнула днищем о землю на скорости) — это НЕ полноценный удар. И урон, и тряска камеры от таких контактов игнорируются. 0.7 ~ фильтрует контакты в пределах ~45° от вертикали.")]
     [Range(0f, 1f)] public float groundContactNormalThreshold = 0.7f;
 
-    [Header("Опционально — тряска камеры")]
-    public CameraFollow cameraFollow;
-
     [Header("Debug (для тестирования баланса)")]
     [Tooltip("Печатать в консоль impulse/damage каждого засчитанного удара — удобно для подбора коэффициентов")]
     public bool logImpactsToConsole = false;
@@ -93,8 +90,6 @@ public class CarCollisionDetector : MonoBehaviour
         float impulse = collision.impulse.magnitude;
 
         // Тряска камеры — от любого НЕ вертикального удара (в т.ч. об стену), это чисто визуал.
-        if (cameraFollow != null && impulse > minImpactImpulse)
-            cameraFollow.TriggerShake(impulse);
 
         if (impulse < minImpactImpulse) return;
 
