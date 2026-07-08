@@ -122,10 +122,10 @@ public class PlayerCarController : NetworkBehaviour
 
     private void UpdateWheelVisual(WheelCollider col, Transform visual)
     {
-        if (visual == null) return;
+        // if (visual == null) return;
 
-        col.GetWorldPose(out Vector3 position, out Quaternion rotation);
-        visual.position = position;
-        visual.rotation = rotation;
+        // col.GetWorldPose(out Vector3 position, out Quaternion rotation);
+        // visual.position = position;
+        // visual.rotation = rotation;
     }
 }
