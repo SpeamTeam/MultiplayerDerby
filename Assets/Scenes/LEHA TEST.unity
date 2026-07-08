@@ -772,6 +772,8 @@ MonoBehaviour:
   - {fileID: 491250809}
   deformRadius: 3
   maxDeformDepth: 2
+  updateMeshColliders: 1
+  searchInChildren: 0
   sparksPrefab: {fileID: 0}
   audioSource: {fileID: 0}
   impactClips: []
@@ -1484,43 +1486,43 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -165.1
+      value: -164.95818
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.1
+      value: 2.0999904
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 70.78
+      value: 70.21527
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.99977994
+      value: -0.9055921
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.00000006570833
+      value: 0.000016265725
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.020978581
+      value: 0.4241498
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.00004030481
+      value: 0.00003687694
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
+      value: -0.003
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 357.596
+      value: 309.806
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: -0.005
+      value: -0.003
       objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -1831,6 +1833,8 @@ MonoBehaviour:
   - {fileID: 670304125}
   deformRadius: 0.6
   maxDeformDepth: 0.35
+  updateMeshColliders: 1
+  searchInChildren: 1
   sparksPrefab: {fileID: 0}
   audioSource: {fileID: 0}
   impactClips: []
