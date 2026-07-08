@@ -84,17 +84,27 @@ public class CarAgent : MonoBehaviour
 
     private void Respawn()
     {
-        // Точку спавна выдаёт внешний менеджер арены (заглушка — текущая позиция + высота).
-        Vector3 spawnPos = SpawnManager.Instance != null
-            ? SpawnManager.Instance.GetSpawnPoint()
-            : transform.position + Vector3.up * 1f;
+        Vector3 spawnPos;
+        Quaternion spawnRot;
+
+        if (SpawnManager.Instance != null)
+        {
+            SpawnManager.Instance.GetSpawnPose(out spawnPos, out spawnRot);
+        }
+        else
+        {
+            // Заглушка на случай отсутствия SpawnManager в сцене (например, в тестовой сцене).
+            spawnPos = transform.position + Vector3.up * 1f;
+            spawnRot = Quaternion.identity;
+        }
 
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-        transform.SetPositionAndRotation(spawnPos, Quaternion.identity);
+        transform.SetPositionAndRotation(spawnPos, spawnRot);
 
         health.ResetState();
         driverEjection?.ResetState();
+        score.OnRespawn(); // сбрасывает коэффициент за время жизни, totalScore не трогает
 
         if (controller != null) controller.enabled = true;
     }

@@ -90,6 +90,16 @@ public class CameraFollow : MonoBehaviour
             Debug.LogWarning($"{name}: CameraFollow.collisionMask не настроен (Nothing). " +
                               "Камера будет проходить сквозь стены. Укажи слой арены/стен в инспекторе.");
         }
+
+        // Без интерполяции Rigidbody его transform.position обновляется только
+        // раз за FixedUpdate и "стоит на месте" между тиками физики — камера,
+        // читающая target.position каждый рендер-кадр, будет сглаживать
+        // прыгающую ступеньками цель, что и выглядит как дрожь на скорости.
+        if (targetRb != null && targetRb.interpolation == RigidbodyInterpolation.None)
+        {
+            Debug.LogWarning($"{name}: Rigidbody цели ({targetRb.name}) без Interpolation. " +
+                              "Это частая причина дрожи камеры — поставь Interpolate в инспекторе Rigidbody.");
+        }
     }
 
     private void LateUpdate()
@@ -168,11 +178,14 @@ public class CameraFollow : MonoBehaviour
         if (lookDir.sqrMagnitude > 0.001f)
         {
             Quaternion desiredRotation = Quaternion.LookRotation(lookDir.normalized, Vector3.up);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                desiredRotation,
-                Time.deltaTime * rotationSmoothSpeed
-            );
+
+            // Раньше: Time.deltaTime * rotationSmoothSpeed — при высоком rotationSmoothSpeed
+            // и низком FPS (например, просадка до 20 кадров) t мог легко превысить 1,
+            // из-за чего Slerp начинал вести себя рывками вместо плавного сглаживания.
+            // Формула ниже — стандартное экспоненциальное сглаживание, которое ведёт
+            // себя одинаково независимо от текущего FPS.
+            float rotT = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotT);
         }
     }
 
@@ -247,4 +260,3 @@ public class CameraFollow : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, cameraRadius);
     }
 }
-
