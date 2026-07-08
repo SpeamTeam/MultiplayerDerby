@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+namespace Assets.Scripts.AI
+{ 
+
 public class CarController : MonoBehaviour
 {
     [Header("Wheel Colliders")]
@@ -171,4 +174,6 @@ public class CarController : MonoBehaviour
 
         Destroy(gameObject, destroyDelay);
     }
+}
+
 }

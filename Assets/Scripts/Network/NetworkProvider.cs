@@ -1,6 +1,9 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class NetworkProvider : NetworkBehaviour
+namespace Assets.Scripts.Network
 {
+    public class NetworkProvider : NetworkBehaviour
+    {
+    }
 }

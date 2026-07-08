@@ -75,14 +75,14 @@ public class DriverEjection : MonoBehaviour
     private Rigidbody carRb;
     private CarHealth carHealth;
     private CarStabilizer stabilizer;
-    private CarController controller;
+    private PlayerCarController controller;
 
     private void Awake()
     {
         carRb = GetComponent<Rigidbody>();
         carHealth = GetComponent<CarHealth>();
         stabilizer = GetComponent<CarStabilizer>();
-        controller = GetComponent<CarController>();
+        controller = GetComponent<PlayerCarController>();
 
         if (driverRoot == null)
         {

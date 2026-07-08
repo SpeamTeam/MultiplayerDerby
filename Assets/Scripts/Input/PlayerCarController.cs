@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CarController : MonoBehaviour
+public class PlayerCarController : MonoBehaviour
 {
     [Header("Wheels Colliders")]
     public WheelCollider wheelFL;

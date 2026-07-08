@@ -11,14 +11,17 @@ using UnityEngine;
 ///
 /// СЕТЬ (для коллег): начисление очков и respawn — серверные операции.
 /// Обернуть тело HandleDied в if (IsServer). Отключение управления
-/// (CarController.enabled) — тоже через сервер/овнершип.
+/// (PlayerCarController.enabled) — тоже через сервер/овнершип.
 /// </summary>
 [RequireComponent(typeof(CarHealth))]
 [RequireComponent(typeof(PlayerScore))]
+[RequireComponent(typeof(DriverEjection))]
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(PlayerCarController))]
 public class CarAgent : MonoBehaviour
 {
     [Header("Ссылки")]
-    public CarController controller;      // чтобы отключать управление при смерти
+    public PlayerCarController controller;      // чтобы отключать управление при смерти
     public Rigidbody rb;
 
     [Header("Респавн")]
@@ -35,7 +38,7 @@ public class CarAgent : MonoBehaviour
         score = GetComponent<PlayerScore>();
         driverEjection = GetComponent<DriverEjection>(); // может отсутствовать — необязательный компонент
         if (rb == null) rb = GetComponent<Rigidbody>();
-        if (controller == null) controller = GetComponent<CarController>();
+        if (controller == null) controller = GetComponent<PlayerCarController>();
     }
 
     private void OnEnable()

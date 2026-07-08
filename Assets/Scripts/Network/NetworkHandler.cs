@@ -3,117 +3,120 @@ using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 
-[RequireComponent(typeof(NetworkManager), typeof(UnityTransport))]
-public class NetworkHandler : MonoBehaviour
+namespace Assets.Scripts.Network
 {
-    public static NetworkHandler Instance { get; private set; }
-
-    public event Action<ulong> OnClientConnected;
-    public event Action<ulong> OnClientDisconnected;
-
-    //public event Action<ulong> OnClientConnected;
-    //public event Action<ulong> OnClientDisconnected;
-
-    [SerializeField] private string worldSceneName = "WorldScene";
-
-    [Header("Have to be assigned")]
-    [SerializeField] private GameObject networkProviderPrefab;
-
-    [Header("Don't have to be assigned")]
-    [SerializeField] private NetworkManager networkManager;
-    [SerializeField] private UnityTransport unityTransport;
-
-    private void Awake()
+    [RequireComponent(typeof(NetworkManager), typeof(UnityTransport))]
+    public class NetworkHandler : MonoBehaviour
     {
-        if (Instance != null && Instance != this)
+        public static NetworkHandler Instance { get; private set; }
+
+        public event Action<ulong> OnClientConnected;
+        public event Action<ulong> OnClientDisconnected;
+
+        //public event Action<ulong> OnClientConnected;
+        //public event Action<ulong> OnClientDisconnected;
+
+        [SerializeField] private string worldSceneName = "WorldScene";
+
+        [Header("Have to be assigned")]
+        [SerializeField] private GameObject networkProviderPrefab;
+
+        [Header("Don't have to be assigned")]
+        [SerializeField] private NetworkManager networkManager;
+        [SerializeField] private UnityTransport unityTransport;
+
+        private void Awake()
         {
-            Destroy(gameObject);
-            return;
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+
+            // Probably already satisfied because
+            // component is on the NetworkManager's object
+            DontDestroyOnLoad(gameObject);
+
+            networkManager = GetComponent<NetworkManager>();
+            unityTransport = GetComponent<UnityTransport>();
+
+            networkManager.OnServerStarted += SubscribeToSceneEvents;
         }
 
-        Instance = this;
-
-        // Probably already satisfied because
-        // component is on the NetworkManager's object
-        DontDestroyOnLoad(gameObject);
-
-        networkManager = GetComponent<NetworkManager>();
-        unityTransport = GetComponent<UnityTransport>();
-
-        networkManager.OnServerStarted += SubscribeToSceneEvents;
-    }
-
-    public void MakeHost()
-    {
-        Debug.Log("Trying to make host");
-
-        if (networkManager.StartHost())
-        { Debug.Log("Hosted successfully"); }
-        else
-        { Debug.LogWarning("Something went wrong on hosting"); }
-
-        var status = networkManager.SceneManager.LoadScene("WorldScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
-        if (status != SceneEventProgressStatus.Started)
+        public void MakeHost()
         {
-            Debug.LogError("Something went wrong on WorldScene loading. Status: " + status.ToString());
+            Debug.Log("Trying to make host");
+
+            if (networkManager.StartHost())
+            { Debug.Log("Hosted successfully"); }
+            else
+            { Debug.LogWarning("Something went wrong on hosting"); }
+
+            var status = networkManager.SceneManager.LoadScene("WorldScene", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            if (status != SceneEventProgressStatus.Started)
+            {
+                Debug.LogError("Something went wrong on WorldScene loading. Status: " + status.ToString());
+            }
         }
-    }
 
-    public void MakeClient(string ip, ushort port)
-    {
-        Debug.Log("Trying to make client");
-
-        unityTransport.SetConnectionData(ip, port);
-
-        if (networkManager.StartClient())
+        public void MakeClient(string ip, ushort port)
         {
-            Debug.Log("Made a client connection successfully");
+            Debug.Log("Trying to make client");
+
+            unityTransport.SetConnectionData(ip, port);
+
+            if (networkManager.StartClient())
+            {
+                Debug.Log("Made a client connection successfully");
+            }
+            else
+            {
+                Debug.LogWarning("Something went wrong on clint initialization");
+            }
         }
-        else
+
+        public void Disconnect()
         {
-            Debug.LogWarning("Something went wrong on clint initialization");
+            networkManager.Shutdown();
+            Debug.Log("Disconnecting");
         }
-    }
 
-    public void Disconnect()
-    {
-        networkManager.Shutdown();
-        Debug.Log("Disconnecting");
-    }
+        // Action Handlers {//
+        private void HandleClientConnected(ulong clientID)
+        {
+            OnClientConnected?.Invoke(clientID);
+        }
 
-    // Action Handlers {//
-    private void HandleClientConnected(ulong clientID)
-    {
-        OnClientConnected?.Invoke(clientID);
-    }
+        private void HandleClientDisconnected(ulong clientID)
+        {
+            OnClientDisconnected?.Invoke(clientID);
+        }
+        // Action Handlers }//
 
-    private void HandleClientDisconnected(ulong clientID)
-    {
-        OnClientDisconnected?.Invoke(clientID);
-    }
-    // Action Handlers }//
+        private void SubscribeToSceneEvents()
+        {
+            // Here we try to catch some events
+            networkManager.SceneManager.OnSceneEvent += CatchWorldSceneLoad;
+        }
 
-    private void SubscribeToSceneEvents()
-    {
-        // Here we try to catch some events
-        networkManager.SceneManager.OnSceneEvent += CatchWorldSceneLoad;
-    }
-    
-    private void CatchWorldSceneLoad(SceneEvent sceneEvent)
-    {
-        if (!(sceneEvent.SceneEventType == SceneEventType.LoadComplete && networkManager.IsServer))
-            return;
-        if (sceneEvent.ClientId != networkManager.LocalClientId) 
-            return;
-        if (sceneEvent.SceneName == worldSceneName)
-            SpawnProvider();
-    }
+        private void CatchWorldSceneLoad(SceneEvent sceneEvent)
+        {
+            if (!(sceneEvent.SceneEventType == SceneEventType.LoadComplete && networkManager.IsServer))
+                return;
+            if (sceneEvent.ClientId != networkManager.LocalClientId)
+                return;
+            if (sceneEvent.SceneName == worldSceneName)
+                SpawnProvider();
+        }
 
-    private void SpawnProvider()
-    {
-        GameObject instance = Instantiate(networkProviderPrefab, Vector3.zero, Quaternion.identity);
-        NetworkObject networkObject = instance.GetComponent<NetworkObject>();
-        networkObject.Spawn();
-    }
+        private void SpawnProvider()
+        {
+            GameObject instance = Instantiate(networkProviderPrefab, Vector3.zero, Quaternion.identity);
+            NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+            networkObject.Spawn();
+        }
 
+    }
 }

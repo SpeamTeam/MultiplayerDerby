@@ -1,21 +1,25 @@
 using UnityEngine;
 
-// TODO: Probably need to change to NetworkBehavior and synchronize between clients
-public class SpawnPointsScript : MonoBehaviour
+namespace Assets.Scripts.Network.Spawn
 {
-    [SerializeField] private Transform[] spawnPoints;
-    public static SpawnPointsScript Instance { get; private set;  }
 
-
-    private void Awake()
+    // TODO: Probably need to change to NetworkBehavior and synchronize between clients
+    public class SpawnPointsScript : MonoBehaviour
     {
-        if (Instance != null && Instance != this)
+        [SerializeField] private Transform[] spawnPoints;
+        public static SpawnPointsScript Instance { get; private set; }
+
+
+        private void Awake()
         {
-            Debug.Log(gameObject + "is being destroyd");
-            Destroy(gameObject);
-            return;
+            if (Instance != null && Instance != this)
+            {
+                Debug.Log(gameObject + "is being destroyd");
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
         }
-        Instance = this;
+        public Transform[] getSpawnPoints() { return spawnPoints; }
     }
-    public Transform[] getSpawnPoints() { return spawnPoints; }
 }
