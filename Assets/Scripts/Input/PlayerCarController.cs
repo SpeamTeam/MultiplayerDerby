@@ -31,11 +31,13 @@ public class PlayerCarController : NetworkBehaviour
     [Header("Steering Smoothing")] // Настройки плавности руля
     [SerializeField] private float steerSpeed = 10f; // Чем меньше значение, тем медленнее крутится руль
 
+    public NetworkVariable<float> NetSteerAngle = new(writePerm: NetworkVariableWritePermission.Owner);
+    public NetworkVariable<float> NetWheelRpm   = new(writePerm: NetworkVariableWritePermission.Owner);
+
     private Rigidbody rb;
     private float moveInput;
     private float steerInput;
     private bool isBraking;
-    private bool isBoosting;
 
     private float currentSteerAngle; // Сглаженный текущий угол поворота
 
@@ -47,20 +49,21 @@ public class PlayerCarController : NetworkBehaviour
         inputActions = new CarControls();
     }
 
-    private void OnEnable()
+    public override void OnNetworkSpawn()
     {
-        if (!IsOwner)
+        if (IsOwner)
             inputActions.Enable();
     }
-    private void OnDisable()
+    public override void OnNetworkDespawn()
     {
-        if (!IsOwner)
+        if (IsOwner)
             inputActions.Disable();
     }
 
     void Start()
     {
-        rb.centerOfMass = new Vector3(0f, -0.3f, 0f); // WTF?
+        
+        // rb.centerOfMass = new Vector3(0f, -0.3f, 0f); // WTF?
     }
 
     public void OnAccelerate(InputAction.CallbackContext context)
@@ -83,14 +86,16 @@ public class PlayerCarController : NetworkBehaviour
 
     void Update()
     {
-        UpdateWheelVisual(wheelFL, visualFL);
-        UpdateWheelVisual(wheelFR, visualFR);
-        UpdateWheelVisual(wheelRL, visualRL);
-        UpdateWheelVisual(wheelRR, visualRR);
+        float steerAngle = IsOwner ? currentSteerAngle : NetSteerAngle.Value;
+        UpdateWheelVisual(wheelFL, visualFL, steerAngle);
+        UpdateWheelVisual(wheelFR, visualFR, steerAngle);
+        UpdateWheelVisual(wheelRL, visualRL, steerAngle);
+        UpdateWheelVisual(wheelRR, visualRR, steerAngle);
     }
 
     void FixedUpdate()
     {
+        if (!IsOwner) return;
         // --- ТЯГА С УЧЁТОМ БУСТА ---
         // Буст добавляет тягу, только пока скорость ниже boostMaxSpeed —
         // иначе на WheelCollider машину разгоняло бы неограниченно.
@@ -111,14 +116,21 @@ public class PlayerCarController : NetworkBehaviour
         wheelFR.brakeTorque = brake;
         wheelRL.brakeTorque = brake;
         wheelRR.brakeTorque = brake;
+
+        NetSteerAngle.Value = currentSteerAngle;
     }
 
-    private void UpdateWheelVisual(WheelCollider col, Transform visual)
+    private void UpdateWheelVisual(WheelCollider col, Transform visual, float steerAngle)
     {
         if (visual == null) return;
+    //  if (!IsOwner) { 
+    //      col.steerAngle = steerAngle;
+    //  }
 
-        // col.GetWorldPose(out Vector3 position, out Quaternion rotation);
-        // visual.position = position;
-        // visual.rotation = rotation;
+        Quaternion steerRotation = Quaternion.AngleAxis(steerAngle, transform.up);
+
+        col.GetWorldPose(out Vector3 position, out Quaternion rotation);
+        visual.position = position;
+        visual.rotation = transform.rotation * steerRotation;
     }
 }

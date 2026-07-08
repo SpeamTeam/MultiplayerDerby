@@ -13,7 +13,7 @@ namespace Assets.Scripts.Network
         public event Action<ulong> OnClientConnected;
         public event Action<ulong> OnClientDisconnected;
 
-        public string worldSceneName = "WorldScene";
+        private string worldSceneName;
 
         [Header("Have to be assigned")]
         [SerializeField] private GameObject networkProviderPrefab;
@@ -50,6 +50,9 @@ namespace Assets.Scripts.Network
             { Debug.Log("Hosted successfully"); }
             else
             { Debug.LogWarning("Something went wrong on hosting"); }
+
+            var currentConfig = new GameConfig(); // WARN: Remake this please!!
+            worldSceneName = currentConfig.worldSceneName;
 
             var status = networkManager.SceneManager.LoadScene(worldSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
             if (status != SceneEventProgressStatus.Started)
