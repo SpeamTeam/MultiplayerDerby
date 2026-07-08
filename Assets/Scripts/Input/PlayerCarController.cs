@@ -1,5 +1,7 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 public class PlayerCarController : MonoBehaviour
 {
@@ -43,7 +45,22 @@ public class PlayerCarController : MonoBehaviour
 
     void Start()
     {
-        rb.centerOfMass = new Vector3(0f, -0.3f, 0f);
+        rb.centerOfMass = new Vector3(0f, -0.3f, 0f); // WTF?
+    }
+
+    public void OnAccelerate(InputAction.CallbackContext context)
+    {
+        moveInput = context.ReadValue<float>();
+    }
+
+    public void OnSteer(InputAction.CallbackContext context)
+    {
+        steerInput = context.ReadValue<float>();
+    }
+
+    public void OnBrake(bool value)
+    {
+        isBraking = value;
     }
 
     void Update()
@@ -59,6 +76,12 @@ public class PlayerCarController : MonoBehaviour
     }
 
     void FixedUpdate()
+    {
+        SteerAndWheelServerRPC();
+    }
+
+    [ServerRpc]
+    void SteerAndWheelServerRPC()
     {
         // √‡Á
         wheelRL.motorTorque = moveInput * motorForce;
