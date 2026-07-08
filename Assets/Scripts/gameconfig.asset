@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.GameConfig
   playerPrefab: {fileID: 8317518333908309311, guid: 21d7ecde1d40f49499ae7c89fb3104de, type: 3}
   enemyPrefab: {fileID: 0}
-  cameraPrefab: {fileID: 3454116302175888723, guid: f7aef4c37b7f2cd4bb1a7eed978a3656, type: 3}
+  cameraPrefab: {fileID: 2847609266289519275, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
   worldSceneName: WorldScene
