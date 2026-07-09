@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEngine;
 
 /// <summary>
@@ -20,7 +21,7 @@ public class DebugHud : MonoBehaviour
     private void OnGUI()
     {
         GUI.skin.label.fontSize = 16;
-        int y = 10;
+        float y = 10;
 
         foreach (var health in watchedCars)
         {
@@ -29,17 +30,34 @@ public class DebugHud : MonoBehaviour
             var score = health.GetComponent<PlayerScore>();
             var eject = health.GetComponent<DriverEjection>();
             var rb = health.GetComponent<Rigidbody>();
+            var agent = GetComponent<CarAgent>();
+            var wheelSetup = agent.wheelSetup;
 
-            string status = health.IsDead ? "МЁРТВ" : (health.IsInvulnerable ? "неуязвим" : "жив");
-            string driverStatus = eject != null ? (eject.IsEjected ? "ВЫЛЕТЕЛ" : "в машине") : "-";
+            // string status = health.IsDead ? "МЁРТВ" : (health.IsInvulnerable ? "неуязвим" : "жив");
+            // string driverStatus = eject != null ? (eject.IsEjected ? "ВЫЛЕТЕЛ" : "в машине") : "-";
+
             float speed = rb != null ? rb.linearVelocity.magnitude : 0f;
 
-            string line = $"{health.name}: HP {health.CurrentHealth:F0}/{health.maxHealth:F0} [{status}] " +
-                          $"| Очки {(score != null ? score.TotalScore : 0)} (килы {(score != null ? score.Kills : 0)}) " +
-                          $"| Водитель: {driverStatus} | Скорость {speed:F1} м/с";
+            float sidewaysStifnessFL = wheelSetup.wheelColliders[0].sidewaysFriction.stiffness;
+            float sidewaysStifnessFR = wheelSetup.wheelColliders[1].sidewaysFriction.stiffness;
+            float sidewaysStifnessRL = wheelSetup.wheelColliders[2].sidewaysFriction.stiffness;
+            float sidewaysStifnessRR = wheelSetup.wheelColliders[3].sidewaysFriction.stiffness;
 
-            GUI.Label(new Rect(10, y, 900, 24), line);
-            y += 24;
+            // string line = $"{health.name}: HP {health.CurrentHealth:F0}/{health.maxHealth:F0} [{status}] " +
+            //               $"| Очки {(score != null ? score.TotalScore : 0)} (килы {(score != null ? score.Kills : 0)}) " +
+            //               $"| Водитель: {driverStatus} | Скорость {speed:F1} м/с";
+
+            int lineCount = 3; 
+            float lineHeight = 20f;
+            float blockHeight = lineCount * lineHeight;
+
+            string line = $"speed: {speed:F1}\n" +
+                $"SIDEWAYS STIFNESS:\n" +
+                $"FL:{sidewaysStifnessFL:F2}    FR:{sidewaysStifnessFR:F2}    " +
+                $"RL:{sidewaysStifnessRL:F2}    RR:{sidewaysStifnessRR:F2}";
+
+            GUI.Label(new Rect(10, y, 900, blockHeight), line);
+            y += blockHeight;
         }
     }
 }

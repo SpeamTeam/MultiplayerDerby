@@ -1,167 +1,189 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
+using Unity.VisualScripting;
 
-public class PlayerCarController : MonoBehaviour
+[RequireComponent(typeof(PlayerInput))]
+public class PlayerCarController : NetworkBehaviour
 {
     [Header("Wheels Colliders")]
-    public WheelCollider wheelFL;
-    public WheelCollider wheelFR;
-    public WheelCollider wheelRL;
-    public WheelCollider wheelRR;
+    [SerializeField] private WheelCollider wheelFL;
+    [SerializeField] private WheelCollider wheelFR;
+    [SerializeField] private WheelCollider wheelRL;
+    [SerializeField] private WheelCollider wheelRR;
 
     [Header("Wheels Visuals (передние — раздельные)")]
-    public Transform visualFL;
-    public Transform visualFR;
+    [SerializeField] private Transform visualFL;
+    [SerializeField] private Transform visualFR;
 
-    [Header("Задний общий визуал (Truck_Wheel_AR — только вращение)")]
-    [Tooltip("Один меш на обе задние колёса. Крутится по средней скорости задних WheelCollider, позицию не трогаем.")]
-    public Transform visualRearShared;
-    [Tooltip("Локальная ось вращения заднего меша. Обычно X (1,0,0). Если крутится не так — поменяй на (0,0,1).")]
-    public Vector3 rearSpinAxis = Vector3.right;
+    [Header("Wheels Visuals (задние — раздельные)")]
+    [SerializeField] private Transform visualRL;
+    [SerializeField] private Transform visualRR;
 
     [Header("Settings")]
-    public float motorForce = 1500f;
-    public float maxSteerAngle = 30f;
+    [SerializeField] private float motorForce = 1500f;
+    [SerializeField] private float maxSteerAngle = 30f;
+
+    [Tooltip("Скорость падения \"оборотов\" при отпускании кнопок")]
+    [SerializeField] private float slowdownOnReleaseSpeed = 30f;
+
+    [Header("Speed-Sensitive Steering")]
+    [Tooltip("Скорость (м/с), на которой угол руля уменьшается до minSteerAngleFactor от maxSteerAngle")]
+    [SerializeField] private float steerSpeedReference = 25f;
+    [Tooltip("Доля от maxSteerAngle на высокой скорости (0..1) — чем меньше, тем сильнее руль 'сужается' на скорости")]
+    [SerializeField] private float minSteerAngleFactor = 0.35f;
 
     [Header("Boost (Shift)")]
-    public float boostMultiplier = 2f;
-    public float boostMaxSpeed = 35f;
+    [SerializeField] private float boostMultiplier = 2f;
+    [SerializeField] private float boostMaxSpeed = 35f;
 
-    [Header("Дрифт (Space)")]
-    [Tooltip("Одна кнопка (Space): едешь прямо — тормозит, поворачиваешь — уводит в занос")]
-    public float handbrakeTorque = 3000f;
-    [Tooltip("Боковое сцепление ЗАДНИХ колёс в обычном режиме (выше = крепче держит)")]
-    public float normalRearGrip = 1f;
-    [Tooltip("Боковое сцепление ЗАДНИХ в дрифте. Для тяжёлого грузовика ставь НИЗКО (0.1-0.25), иначе корму не пускает")]
-    public float driftRearGrip = 0.15f;
-    [Tooltip("Как быстро сцепление переключается (больше = резче срыв)")]
-    public float driftBlendSpeed = 12f;
-    [Tooltip("Прибавка к углу руля в заносе")]
-    public float driftSteerBonus = 14f;
-    [Tooltip("Мин. скорость (м/с) для срыва в занос")]
-    public float minDriftSpeed = 2.5f;
-    [Tooltip("Какой поворот руля (0..1) считается 'занос'. Ниже — Space тормозит, выше — уводит в занос")]
-    [Range(0.05f, 1f)] public float driftSteerThreshold = 0.15f;
-    [Tooltip("Доп. подкрут кормы в заносе (аркадный толчок, чтобы машину заметно уводило). 0 = выключить")]
-    public float driftYawAssist = 6000f;
-    [Tooltip("Доп. тяга вперёд во время заноса (0..1 от motorForce) — не даёт скорости падать от потери сцепления, аркадный занос без торможения")]
-    [Range(0f, 1f)] public float driftForwardAssist = 0.35f;
+    [Header("Handbrake (Spacebar)")]
+    [SerializeField] private float handbrakeTorque = 3000f;
+    // [Tooltip("Боковое сцепление ЗАДНИХ колёс в обычном режиме (выше = крепче держит)")]
+    // [SerializeField] private float normalRearGrip = 1f;
 
     [Header("Steering Smoothing")]
-    public float steerSpeed = 10f;
+    [SerializeField] private float steerSpeed = 10f;
+
+    [SerializeField] private float downforceAmount = 10f;
+
+    [Range(0f, 1f)]
+    [SerializeField] private float droppedStiffness = .5f;
+
+    [Header("Player's Input node")]
+    [SerializeField] private PlayerInput playerInput;
+
+    [Header("Rigidbody's center offset")]
+    [SerializeField] private Vector3 centerOfMass = new(0f, -0.3f, 0f);
 
     private Rigidbody rb;
     private float moveInput;
     private float steerInput;
     private bool isBoosting;
-    private bool driftHeld;
-    private bool isDrifting;
+    private bool brakeHeld;
 
     private float currentSteerAngle;
-    private float currentRearGrip;
-    private float rearVisualSpin;
-    private Quaternion rearVisualBaseRot;
-    private bool baseRotInit;
-
-    private WheelFrictionCurve rearFrictionRL;
-    private WheelFrictionCurve rearFrictionRR;
-
-    private CarControls inputActions;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        inputActions = new CarControls();
+        if (playerInput == null) playerInput = GetComponent<PlayerInput>();
     }
 
-    private void OnEnable() => inputActions.Enable();
-    private void OnDisable() => inputActions.Disable();
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
+            playerInput.actions.Enable();
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsOwner)
+            playerInput.actions.Disable();
+    }
 
     void Start()
     {
-        rb.centerOfMass = new Vector3(0f, -0.3f, 0f);
+        if (!IsOwner)
+            return;
+        rb.centerOfMass = centerOfMass ;
 
-        rearFrictionRL = wheelRL.sidewaysFriction;
-        rearFrictionRR = wheelRR.sidewaysFriction;
-        currentRearGrip = normalRearGrip;
-
-        if (visualRearShared != null)
-        {
-            rearVisualBaseRot = visualRearShared.localRotation;
-            baseRotInit = true;
-        }
     }
 
     void Update()
     {
-        moveInput = inputActions.Driving.Accelerate.ReadValue<float>();
-        steerInput = inputActions.Driving.Steer.ReadValue<float>();
-
-        var kb = Keyboard.current;
-        isBoosting = kb != null && kb.leftShiftKey.isPressed;
-        driftHeld = kb != null && kb.spaceKey.isPressed;
-
-        bool steeringHard = Mathf.Abs(steerInput) > driftSteerThreshold;
-        isDrifting = driftHeld
-                     && rb.linearVelocity.magnitude > minDriftSpeed
-                     && steeringHard;
+        if (!IsOwner)
+            return;
 
         UpdateWheelVisual(wheelFL, visualFL);
         UpdateWheelVisual(wheelFR, visualFR);
-        UpdateRearSharedVisual();
+        UpdateWheelVisual(wheelRL, visualRL);
+        UpdateWheelVisual(wheelRR, visualRR);
     }
+
+
+    // Input Methods {
+
+    public void OnSteer(InputAction.CallbackContext context)
+    {
+        steerInput = context.ReadValue<float>();
+    }
+    public void OnAccelerate(InputAction.CallbackContext context)
+    {
+        moveInput = context.ReadValue<float>();
+    }
+    public void OnBrake(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            brakeHeld = true;
+        }
+        else if (context.canceled)
+        {
+            brakeHeld = false;
+        }
+    }
+    public void OnBoost(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            isBoosting = true;
+        }
+        else if (context.canceled)
+        {
+            isBoosting = false;
+        }
+    }
+    // Input Methods }
 
     void FixedUpdate()
     {
-        // Тяга с бустом
+        if (!IsOwner)
+            return;
+
+        // TODO: Make boost exist in game and in Input Asset
+        // Тяга с бустом 
         float currentForce = motorForce;
         if (isBoosting && rb.linearVelocity.magnitude < boostMaxSpeed)
             currentForce *= boostMultiplier;
 
-        wheelRL.motorTorque = moveInput * currentForce;
-        wheelRR.motorTorque = moveInput * currentForce;
+        wheelFL.motorTorque = moveInput * currentForce;
+        wheelFR.motorTorque = moveInput * currentForce;
 
-        // Сцепление задних
-        float targetGrip = normalRearGrip;
-        if (isDrifting)
-            targetGrip = driftRearGrip;
-        else if (driftHeld)
-            targetGrip = Mathf.Lerp(normalRearGrip, driftRearGrip, 0.4f);
-
-        currentRearGrip = Mathf.Lerp(currentRearGrip, targetGrip, driftBlendSpeed * Time.fixedDeltaTime);
-        ApplyRearGrip(currentRearGrip);
-
-        // Тормоз задними, когда Space зажат и НЕ в заносе
-        float brake = (driftHeld && !isDrifting) ? handbrakeTorque : 0f;
+        float brake = (brakeHeld) ? handbrakeTorque : 0f;
         wheelRL.brakeTorque = brake;
         wheelRR.brakeTorque = brake;
         wheelFL.brakeTorque = 0f;
         wheelFR.brakeTorque = 0f;
 
-        // Аркадный занос: подкручиваем корму и держим тягу, чтобы скорость не терялась от потери сцепления
-        if (isDrifting)
+        if (brakeHeld && moveInput == 0f) 
         {
-            if (driftYawAssist > 0f)
-                rb.AddTorque(Vector3.up * steerInput * driftYawAssist, ForceMode.Force);
-
-            if (driftForwardAssist > 0f)
-                rb.AddForce(transform.forward * (motorForce * driftForwardAssist), ForceMode.Force);
+            wheelRL.brakeTorque = slowdownOnReleaseSpeed;
+            wheelRR.brakeTorque = slowdownOnReleaseSpeed;
+            wheelFL.brakeTorque = slowdownOnReleaseSpeed;
+            wheelFR.brakeTorque = slowdownOnReleaseSpeed;
         }
 
-        // Руль (в заносе больше угол)
-        float effectiveMaxSteer = maxSteerAngle + (isDrifting ? driftSteerBonus : 0f);
-        float targetSteerAngle = steerInput * effectiveMaxSteer;
+        if (brakeHeld)
+        {
+            ApplyStiffness(wheelRL, true);
+            ApplyStiffness(wheelRR, true);
+        }
+        else
+        {
+            ApplyStiffness(wheelRL, false);
+            ApplyStiffness(wheelRR, false);
+        }
+
+        float speedFactor = brakeHeld
+            ? 1f
+            : Mathf.Lerp(1f, minSteerAngleFactor, Mathf.Clamp01(rb.linearVelocity.magnitude / steerSpeedReference));
+        float targetSteerAngle = steerInput * maxSteerAngle * speedFactor;
         currentSteerAngle = Mathf.Lerp(currentSteerAngle, targetSteerAngle, steerSpeed * Time.fixedDeltaTime);
         wheelFL.steerAngle = currentSteerAngle;
         wheelFR.steerAngle = currentSteerAngle;
-    }
 
-    private void ApplyRearGrip(float grip)
-    {
-        rearFrictionRL.stiffness = grip;
-        rearFrictionRR.stiffness = grip;
-        wheelRL.sidewaysFriction = rearFrictionRL;
-        wheelRR.sidewaysFriction = rearFrictionRR;
+        rb.AddForce(Vector3.down * downforceAmount * rb.linearVelocity.sqrMagnitude, ForceMode.Force);
     }
 
     private void UpdateWheelVisual(WheelCollider col, Transform visual)
@@ -172,22 +194,14 @@ public class PlayerCarController : MonoBehaviour
         visual.rotation = rotation;
     }
 
-    // Общий задний меш: не привязываем к позиции колёс (их два, меш один),
-    // только докручиваем по средней скорости вращения задних WheelCollider.
-    private void UpdateRearSharedVisual()
+    // <summary>
+    // If flag is true then stifness goes to low value, else recovers to 1f
+    // </summary>
+    private void ApplyStiffness(WheelCollider collider, bool flag)
     {
-        if (visualRearShared == null || !baseRotInit) return;
-
-        float rpm = 0f;
-        int count = 0;
-        if (wheelRL != null) { rpm += wheelRL.rpm; count++; }
-        if (wheelRR != null) { rpm += wheelRR.rpm; count++; }
-        if (count > 0) rpm /= count;
-
-        rearVisualSpin += rpm * 6f * Time.deltaTime; // rpm -> градусы/сек
-        if (rearVisualSpin > 360f) rearVisualSpin -= 360f;
-        else if (rearVisualSpin < -360f) rearVisualSpin += 360f;
-
-        visualRearShared.localRotation = rearVisualBaseRot * Quaternion.AngleAxis(rearVisualSpin, rearSpinAxis.normalized);
+        var sidewaysFriction = collider.sidewaysFriction;
+        float target = flag ? droppedStiffness : 1f;
+        sidewaysFriction.stiffness = Mathf.Lerp(sidewaysFriction.stiffness, target, Time.fixedDeltaTime * 1);
+        collider.sidewaysFriction = sidewaysFriction;
     }
 }

@@ -23,8 +23,8 @@ using UnityEngine;
 public class CarAgent : NetworkBehaviour
 {
     [Header("Ссылки")]
-    public PlayerCarController controller;      // чтобы отключать управление при смерти
-    public Rigidbody rb;
+    [SerializeField] private PlayerCarController controller;      // чтобы отключать управление при смерти
+    [SerializeField] private Rigidbody rb;
 
     [Header("Респавн")]
     public bool autoRespawn = true;
@@ -33,6 +33,9 @@ public class CarAgent : NetworkBehaviour
     private CarHealth health;
     private PlayerScore score;
     // private DriverEjection driverEjection;
+
+    // TODO: delete after debug hud become useless
+    public WheelSetupScript wheelSetup;
 
     private void Awake()
     {
