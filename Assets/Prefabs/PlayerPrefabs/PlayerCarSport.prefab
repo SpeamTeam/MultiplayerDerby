@@ -772,6 +772,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8174624547702910898}
+  - component: {fileID: 600297000132327531}
   m_Layer: 0
   m_Name: Wheels
   m_TagString: Untagged
@@ -796,6 +797,33 @@ Transform:
   - {fileID: 5064825521073246929}
   m_Father: {fileID: 3549497932509481173}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &600297000132327531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6160626164735655404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bb62e71bb2f19143bd9207605a9312b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  suspensionDistance: 0.3
+  forwardFrictionRear: 1
+  forwardFrictionFront: 1
+  sidewaysFrictionRear: 0.65
+  sidewaysFrictionFront: 0.75
+  wheelFL: {fileID: 5730040203952232317}
+  wheelFR: {fileID: 6891086613295758990}
+  wheelRL: {fileID: 5421187215723039018}
+  wheelRR: {fileID: 1796747413643405469}
+  wheelColliders: []
+  wheelTransforms: []
+  visualFL: {fileID: 6256000490887540306}
+  visualFR: {fileID: 934128749554787388}
+  visualRL: {fileID: 169715992642059624}
+  visualRR: {fileID: 5172045457080220489}
 --- !u!1 &6533464765846369492
 GameObject:
   m_ObjectHideFlags: 0
@@ -853,7 +881,7 @@ WheelCollider:
     m_AsymptoteValue: 0.5
     m_Stiffness: 1
   m_SidewaysFriction:
-    m_ExtremumSlip: 0.2
+    m_ExtremumSlip: 0.15
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.5
     m_AsymptoteValue: 0.75
@@ -924,7 +952,7 @@ WheelCollider:
     m_AsymptoteValue: 0.5
     m_Stiffness: 1
   m_SidewaysFriction:
-    m_ExtremumSlip: 0.2
+    m_ExtremumSlip: 0.15
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.5
     m_AsymptoteValue: 0.75
@@ -992,6 +1020,7 @@ GameObject:
   - component: {fileID: -6418833470022641191}
   - component: {fileID: 3016440026682865028}
   - component: {fileID: -5039093915575437136}
+  - component: {fileID: 1693928508142922902}
   m_Layer: 0
   m_Name: PlayerCarSport
   m_TagString: Untagged
@@ -1027,7 +1056,7 @@ Rigidbody:
   serializedVersion: 5
   m_Mass: 1000
   m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_AngularDamping: 0.1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1168,7 +1197,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 656957996
+  GlobalObjectIdHash: 704096593
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1201,21 +1230,14 @@ MonoBehaviour:
   wheelRR: {fileID: 1796747413643405469}
   visualFL: {fileID: 6256000490887540306}
   visualFR: {fileID: 934128749554787388}
-  visualRearShared: {fileID: 0}
-  rearSpinAxis: {x: 1, y: 0, z: 0}
-  motorForce: 1500
-  maxSteerAngle: 30
+  visualRL: {fileID: 169715992642059624}
+  visualRR: {fileID: 5172045457080220489}
+  motorForce: 5000
+  maxSteerAngle: 35
   boostMultiplier: 2
   boostMaxSpeed: 35
   handbrakeTorque: 3000
   normalRearGrip: 1
-  driftRearGrip: 0.23
-  driftBlendSpeed: 5
-  driftSteerBonus: 5
-  minDriftSpeed: 2.5
-  driftSteerThreshold: 0.15
-  driftYawAssist: 5000
-  driftForwardAssist: 0.35
   steerSpeed: 10
   playerInput: {fileID: 0}
 --- !u!114 &-7143757877499138969
@@ -1247,6 +1269,7 @@ MonoBehaviour:
   rb: {fileID: 9154793490558195710}
   autoRespawn: 1
   respawnDelay: 3
+  wheelSetup: {fileID: 600297000132327531}
 --- !u!114 &3016440026682865028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1310,3 +1333,16 @@ MonoBehaviour:
   UseRigidBodyForMotion: 0
   AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
+--- !u!114 &1693928508142922902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8932994728899503279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a9f2ea3787b38d4f8a795de7eb75141, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebugHud
+  watchedCars: []
