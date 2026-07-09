@@ -45,11 +45,18 @@ namespace Assets.Scripts.AI
         // MeshCollider, привязанный к каждому MeshFilter
         private MeshCollider[] linkedColliders;
 
+        // Добавьте поле после linkedColliders:
+        private WheelDetachment wheelDetachment;
+
+        // В конце Awake():
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
             carController = GetComponent<CarController>();
             InitDeformation();
+
+            // Добавить эту строку:
+            wheelDetachment = GetComponent<WheelDetachment>();
         }
 
         private void InitDeformation()
@@ -225,9 +232,18 @@ namespace Assets.Scripts.AI
                     RecalculateFlatNormals(mesh);
                     mesh.RecalculateBounds();
 
-                    // ── Обновляем MeshCollider ───────────────────────────────────
                     if (updateMeshColliders && linkedColliders != null && linkedColliders[m] != null)
                         ApplyMeshToCollider(linkedColliders[m], mesh);
+
+                    if (wheelDetachment != null)
+                    {
+                        wheelDetachment.OnMeshDeformedNearWheel(
+                            originalVerts[m],  // оригинальные вершины
+                            verts,             // деформированные вершины
+                            t,                 // Transform меша
+                            force              // сила удара
+                        );
+                    }
                 }
             }
         }
