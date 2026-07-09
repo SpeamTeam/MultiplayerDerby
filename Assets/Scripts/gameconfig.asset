@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dedbaa0b556a764da35ac391911764a, type: 3}
   m_Name: gameconfig
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.GameConfig
-  playerPrefab: {fileID: 8317518333908309311, guid: 21d7ecde1d40f49499ae7c89fb3104de, type: 3}
+  playerPrefab: {fileID: 8932994728899503279, guid: 816d7ca890fd8374281cf44f96c8007c, type: 3}
   enemyPrefab: {fileID: 0}
   cameraPrefab: {fileID: 2847609266289519275, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
   worldSceneName: WorldScene
