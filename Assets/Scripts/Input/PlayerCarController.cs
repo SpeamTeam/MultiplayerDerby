@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
+using Unity.VisualScripting;
 
 [RequireComponent(typeof(PlayerInput))]
 public class PlayerCarController : NetworkBehaviour
@@ -23,20 +24,37 @@ public class PlayerCarController : NetworkBehaviour
     [SerializeField] private float motorForce = 1500f;
     [SerializeField] private float maxSteerAngle = 30f;
 
+    [Tooltip("Скорость падения \"оборотов\" при отпускании кнопок")]
+    [SerializeField] private float slowdownOnReleaseSpeed = 30f;
+
+    [Header("Speed-Sensitive Steering")]
+    [Tooltip("Скорость (м/с), на которой угол руля уменьшается до minSteerAngleFactor от maxSteerAngle")]
+    [SerializeField] private float steerSpeedReference = 25f;
+    [Tooltip("Доля от maxSteerAngle на высокой скорости (0..1) — чем меньше, тем сильнее руль 'сужается' на скорости")]
+    [SerializeField] private float minSteerAngleFactor = 0.35f;
+
     [Header("Boost (Shift)")]
     [SerializeField] private float boostMultiplier = 2f;
     [SerializeField] private float boostMaxSpeed = 35f;
 
-    [Tooltip("Одна кнопка (Space): едешь прямо — тормозит, поворачиваешь — уводит в занос")]
+    [Header("Handbrake (Spacebar)")]
     [SerializeField] private float handbrakeTorque = 3000f;
-    [Tooltip("Боковое сцепление ЗАДНИХ колёс в обычном режиме (выше = крепче держит)")]
-    [SerializeField] private float normalRearGrip = 1f;
+    // [Tooltip("Боковое сцепление ЗАДНИХ колёс в обычном режиме (выше = крепче держит)")]
+    // [SerializeField] private float normalRearGrip = 1f;
 
     [Header("Steering Smoothing")]
     [SerializeField] private float steerSpeed = 10f;
 
+    [SerializeField] private float downforceAmount = 10f;
+
+    [Range(0f, 1f)]
+    [SerializeField] private float droppedStiffness = .5f;
+
     [Header("Player's Input node")]
     [SerializeField] private PlayerInput playerInput;
+
+    [Header("Rigidbody's center offset")]
+    [SerializeField] private Vector3 centerOfMass = new(0f, -0.3f, 0f);
 
     private Rigidbody rb;
     private float moveInput;
@@ -45,9 +63,6 @@ public class PlayerCarController : NetworkBehaviour
     private bool brakeHeld;
 
     private float currentSteerAngle;
-    private float currentRearGrip;
-
-
 
     private void Awake()
     {
@@ -71,7 +86,7 @@ public class PlayerCarController : NetworkBehaviour
     {
         if (!IsOwner)
             return;
-        rb.centerOfMass = new Vector3(0f, -0.3f, 0f);
+        rb.centerOfMass = centerOfMass ;
 
     }
 
@@ -132,14 +147,22 @@ public class PlayerCarController : NetworkBehaviour
         if (isBoosting && rb.linearVelocity.magnitude < boostMaxSpeed)
             currentForce *= boostMultiplier;
 
-        wheelRL.motorTorque = moveInput * currentForce;
-        wheelRR.motorTorque = moveInput * currentForce;
+        wheelFL.motorTorque = moveInput * currentForce;
+        wheelFR.motorTorque = moveInput * currentForce;
 
         float brake = (brakeHeld) ? handbrakeTorque : 0f;
         wheelRL.brakeTorque = brake;
         wheelRR.brakeTorque = brake;
         wheelFL.brakeTorque = 0f;
         wheelFR.brakeTorque = 0f;
+
+        if (brakeHeld && moveInput == 0f) 
+        {
+            wheelRL.brakeTorque = slowdownOnReleaseSpeed;
+            wheelRR.brakeTorque = slowdownOnReleaseSpeed;
+            wheelFL.brakeTorque = slowdownOnReleaseSpeed;
+            wheelFR.brakeTorque = slowdownOnReleaseSpeed;
+        }
 
         if (brakeHeld)
         {
@@ -152,11 +175,15 @@ public class PlayerCarController : NetworkBehaviour
             ApplyStiffness(wheelRR, false);
         }
 
-        float targetSteerAngle = steerInput * maxSteerAngle;
+        float speedFactor = brakeHeld
+            ? 1f
+            : Mathf.Lerp(1f, minSteerAngleFactor, Mathf.Clamp01(rb.linearVelocity.magnitude / steerSpeedReference));
+        float targetSteerAngle = steerInput * maxSteerAngle * speedFactor;
         currentSteerAngle = Mathf.Lerp(currentSteerAngle, targetSteerAngle, steerSpeed * Time.fixedDeltaTime);
         wheelFL.steerAngle = currentSteerAngle;
         wheelFR.steerAngle = currentSteerAngle;
 
+        rb.AddForce(Vector3.down * downforceAmount * rb.linearVelocity.sqrMagnitude, ForceMode.Force);
     }
 
     private void UpdateWheelVisual(WheelCollider col, Transform visual)
@@ -173,7 +200,8 @@ public class PlayerCarController : NetworkBehaviour
     private void ApplyStiffness(WheelCollider collider, bool flag)
     {
         var sidewaysFriction = collider.sidewaysFriction;
-        sidewaysFriction.stiffness = flag ? Mathf.Lerp(sidewaysFriction.stiffness, .5f, Time.deltaTime * 1) : 1f;
+        float target = flag ? droppedStiffness : 1f;
+        sidewaysFriction.stiffness = Mathf.Lerp(sidewaysFriction.stiffness, target, Time.fixedDeltaTime * 1);
         collider.sidewaysFriction = sidewaysFriction;
     }
 }

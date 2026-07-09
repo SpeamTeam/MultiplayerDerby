@@ -881,9 +881,9 @@ WheelCollider:
     m_AsymptoteValue: 0.5
     m_Stiffness: 1
   m_SidewaysFriction:
-    m_ExtremumSlip: 0.15
+    m_ExtremumSlip: 0.12
     m_ExtremumValue: 1
-    m_AsymptoteSlip: 0.5
+    m_AsymptoteSlip: 0.67
     m_AsymptoteValue: 0.75
     m_Stiffness: 1
   m_IncludeLayers:
@@ -952,7 +952,7 @@ WheelCollider:
     m_AsymptoteValue: 0.5
     m_Stiffness: 1
   m_SidewaysFriction:
-    m_ExtremumSlip: 0.15
+    m_ExtremumSlip: 0.12
     m_ExtremumValue: 1
     m_AsymptoteSlip: 0.5
     m_AsymptoteValue: 0.75
@@ -1066,7 +1066,7 @@ Rigidbody:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_ImplicitCom: 1
+  m_ImplicitCom: 0
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
@@ -1232,14 +1232,19 @@ MonoBehaviour:
   visualFR: {fileID: 934128749554787388}
   visualRL: {fileID: 169715992642059624}
   visualRR: {fileID: 5172045457080220489}
-  motorForce: 5000
+  motorForce: 3000
   maxSteerAngle: 35
+  slowdownOnReleaseSpeed: 1000
+  steerSpeedReference: 25
+  minSteerAngleFactor: 1
   boostMultiplier: 2
   boostMaxSpeed: 35
-  handbrakeTorque: 3000
-  normalRearGrip: 1
+  handbrakeTorque: 1000
   steerSpeed: 10
+  downforceAmount: 5
+  droppedStiffness: 1
   playerInput: {fileID: 0}
+  centerOfMass: {x: 0, y: -0.3, z: 0.15}
 --- !u!114 &-7143757877499138969
 MonoBehaviour:
   m_ObjectHideFlags: 0
