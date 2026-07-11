@@ -1,156 +1,237 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 namespace Assets.Scripts.AI
 {
-    /// <summary>
-    /// Добавьте этот компонент на тот же GameObject, что и CarCollision.
-    /// Для каждого колеса укажите Transform колеса и порог деформации.
-    /// </summary>
     public class WheelDetachment : MonoBehaviour
     {
         [System.Serializable]
         public class WheelData
         {
-            [Tooltip("Transform самого колеса (визуальный объект)")]
-            public Transform wheelTransform;
-
-            [Tooltip("WheelCollider, связанный с этим колесом")]
+            public string name = "Wheel";
+            public Transform wheelMesh;
             public WheelCollider wheelCollider;
 
-            [Tooltip("Радиус зоны проверки деформации вокруг колеса (в локальных координатах кузова)")]
-            public float checkRadius = 0.4f;
+            [Header("Detection")]
+            [Tooltip("Радиус проверки вершин вокруг колеса")]
+            public float vertexCheckRadius = 0.8f;
 
-            [Tooltip("Насколько вершины должны сдвинуться, чтобы колесо отпало (в единицах Unity)")]
-            public float deformThreshold = 0.15f;
+            [Tooltip("Суммарная деформация для отпадания")]
+            public float detachThreshold = 0.5f;
 
-            [Tooltip("Префаб для эффекта отпадания (опционально)")]
-            public GameObject detachEffectPrefab;
-
-            [HideInInspector] public bool isDetached = false;
-            [HideInInspector] public float currentDeformation = 0f;
+            [HideInInspector] public float accumulatedDeformation;
+            [HideInInspector] public bool detached;
         }
 
-        [Header("Wheel Settings")]
+        [Header("Wheels")]
         public WheelData[] wheels;
 
-        [Header("Physics After Detach")]
-        [Tooltip("Сила, с которой колесо отлетает")]
+        [Header("Damage Settings")]
+        [Tooltip("Множитель урона от деформации")]
+        public float damageMultiplier = 8f;
+
+        [Tooltip("Минимальное смещение вершины чтобы считаться")]
+        public float minVertexDisplacement = 0.01f;
+
+        [Header("Physics")]
         public float detachForce = 5f;
-        [Tooltip("Случайный крутящий момент при отпадании")]
         public float detachTorque = 3f;
 
-        private CarCollision carCollision;
+        [Header("Debug")]
+        public bool enableLogs = true;
+        public bool drawGizmos = true;
 
-        // Публичный метод, вызываемый из CarCollision после каждой деформации
-        public void OnMeshDeformed(int meshIndex, Vector3[] originalVerts,
-                                   Vector3[] deformedVerts, Transform meshTransform)
+        private CarController carController;
+        private Rigidbody carRb;
+
+        private void Awake()
         {
-            if (wheels == null) return;
+            carController = GetComponent<CarController>();
+            carRb = GetComponent<Rigidbody>();
 
-            foreach (var wheel in wheels)
-            {
-                if (wheel == null || wheel.isDetached || wheel.wheelTransform == null)
-                    continue;
-
-                // Позиция колеса в локальном пространстве меша
-                Vector3 wheelLocalPos = meshTransform.InverseTransformPoint(
-                    wheel.wheelTransform.position
-                );
-
-                float maxDisplacement = CalculateMaxDisplacement(
-                    originalVerts, deformedVerts, wheelLocalPos, wheel.checkRadius
-                );
-
-                wheel.currentDeformation = Mathf.Max(wheel.currentDeformation, maxDisplacement);
-
-                if (wheel.currentDeformation >= wheel.deformThreshold)
-                {
-                    DetachWheel(wheel);
-                }
-            }
+            if (enableLogs)
+                Debug.Log($"[WheelDetachment] Инициализация: {wheels?.Length ?? 0} колес");
         }
 
         /// <summary>
-        /// Считает максимальное смещение вершин в зоне колеса
+        /// Вызывается после деформации меша — проверяет все колёса
         /// </summary>
-        private float CalculateMaxDisplacement(Vector3[] original, Vector3[] deformed,
-                                                Vector3 centerLocal, float radius)
+        public void OnMeshDeformedNearWheel(
+            Vector3[] originalVerts,
+            Vector3[] deformedVerts,
+            Transform meshTransform,
+            float impactForce)
         {
-            float maxDisp = 0f;
+            if (wheels == null || wheels.Length == 0) return;
 
-            for (int i = 0; i < original.Length; i++)
+            foreach (WheelData wheel in wheels)
             {
-                float dist = Vector3.Distance(original[i], centerLocal);
-                if (dist > radius) continue;
+                if (wheel == null || wheel.detached || wheel.wheelMesh == null)
+                    continue;
 
-                float displacement = Vector3.Distance(original[i], deformed[i]);
-                if (displacement > maxDisp)
-                    maxDisp = displacement;
+                // Позиция колеса в локальных координатах меша
+                Vector3 wheelLocalPos = meshTransform.InverseTransformPoint(wheel.wheelMesh.position);
+
+                // Считаем деформацию вершин в зоне колеса
+                DeformationData deform = CalculateDeformationNearWheel(
+                    originalVerts,
+                    deformedVerts,
+                    wheelLocalPos,
+                    wheel.vertexCheckRadius
+                );
+
+                if (deform.affectedVertices == 0)
+                    continue;
+
+                // Урон = средняя деформация * сила удара * множитель
+                float damageAmount = deform.averageDisplacement * impactForce * damageMultiplier;
+                wheel.accumulatedDeformation += damageAmount;
+
+                if (enableLogs)
+                {
+                    Debug.Log($"[WheelDetachment] {wheel.name}: " +
+                              $"вершин={deform.affectedVertices}, " +
+                              $"avgDisp={deform.averageDisplacement:F4}, " +
+                              $"maxDisp={deform.maxDisplacement:F4}, " +
+                              $"damage+={damageAmount:F3}, " +
+                              $"total={wheel.accumulatedDeformation:F3}/{wheel.detachThreshold:F3}");
+                }
+
+                if (wheel.accumulatedDeformation >= wheel.detachThreshold)
+                    DetachWheel(wheel);
+            }
+        }
+
+        private struct DeformationData
+        {
+            public int affectedVertices;
+            public float averageDisplacement;
+            public float maxDisplacement;
+        }
+
+        private DeformationData CalculateDeformationNearWheel(
+            Vector3[] originalVerts,
+            Vector3[] deformedVerts,
+            Vector3 wheelLocalPos,
+            float radius)
+        {
+            DeformationData result = new DeformationData();
+            float sumDisplacement = 0f;
+            float maxDisplacement = 0f;
+            int count = 0;
+
+            float radiusSqr = radius * radius;
+
+            for (int i = 0; i < originalVerts.Length; i++)
+            {
+                // Проверяем расстояние от вершины до центра колеса
+                float distSqr = (originalVerts[i] - wheelLocalPos).sqrMagnitude;
+
+                if (distSqr > radiusSqr)
+                    continue;
+
+                // Считаем смещение этой вершины
+                float displacement = Vector3.Distance(originalVerts[i], deformedVerts[i]);
+
+                if (displacement < minVertexDisplacement)
+                    continue;
+
+                sumDisplacement += displacement;
+                count++;
+
+                if (displacement > maxDisplacement)
+                    maxDisplacement = displacement;
             }
 
-            return maxDisp;
+            result.affectedVertices = count;
+            result.maxDisplacement = maxDisplacement;
+            result.averageDisplacement = count > 0 ? sumDisplacement / count : 0f;
+
+            return result;
         }
 
         private void DetachWheel(WheelData wheel)
         {
-            wheel.isDetached = true;
+            if (wheel.detached) return;
+            wheel.detached = true;
 
-            // ── Отключаем WheelCollider ──────────────────────────────────────────
-            if (wheel.wheelCollider != null)
+            Debug.Log($"[WheelDetachment] ═══ КОЛЕСО ОТПАЛО: {wheel.name} ═══");
+
+            Transform originalWheel = wheel.wheelMesh;
+            Vector3 pos = originalWheel.position;
+            Quaternion rot = originalWheel.rotation;
+
+            // 1. Уведомляем CarController
+            if (carController != null)
+                carController.NotifyWheelDetached(wheel.wheelCollider, originalWheel);
+
+            // 2. Создаём физический объект
+            GameObject detached = new GameObject("Detached_" + wheel.name);
+            detached.transform.position = pos;
+            detached.transform.rotation = rot;
+
+            // Копируем mesh
+            MeshFilter srcMF = originalWheel.GetComponent<MeshFilter>() ?? originalWheel.GetComponentInChildren<MeshFilter>();
+            MeshRenderer srcMR = originalWheel.GetComponent<MeshRenderer>() ?? originalWheel.GetComponentInChildren<MeshRenderer>();
+
+            if (srcMF != null && srcMR != null)
             {
-                wheel.wheelCollider.motorTorque = 0f;
-                wheel.wheelCollider.brakeTorque = float.MaxValue;
-                wheel.wheelCollider.enabled = false;
+                MeshFilter newMF = detached.AddComponent<MeshFilter>();
+                MeshRenderer newMR = detached.AddComponent<MeshRenderer>();
+                newMF.sharedMesh = srcMF.sharedMesh;
+                newMR.sharedMaterials = srcMR.sharedMaterials;
             }
 
-            // ── Отсоединяем визуальное колесо от родителя ────────────────────────
-            Transform wheelT = wheel.wheelTransform;
-            Vector3 detachPosition = wheelT.position;
-            Quaternion detachRotation = wheelT.rotation;
+            // 3. Скрываем оригинал
+            originalWheel.gameObject.SetActive(false);
 
-            wheelT.SetParent(null); // Отцепляем от машины
+            // 4. Физика
+            SphereCollider col = detached.AddComponent<SphereCollider>();
+            col.radius = 0.35f;
 
-            // ── Добавляем Rigidbody для физики колеса ────────────────────────────
-            Rigidbody wheelRb = wheelT.GetComponent<Rigidbody>();
-            if (wheelRb == null)
-                wheelRb = wheelT.gameObject.AddComponent<Rigidbody>();
+            Rigidbody rb = detached.AddComponent<Rigidbody>();
+            rb.mass = 20f;
 
-            wheelRb.mass = 15f;
-
-            // Наследуем скорость машины
-            Rigidbody carRb = GetComponent<Rigidbody>();
             if (carRb != null)
-                wheelRb.linearVelocity = carRb.linearVelocity;
+                rb.linearVelocity = carRb.linearVelocity;
 
-            // Добавляем силу отпадания (от центра машины)
-            Vector3 detachDir = (detachPosition - transform.position).normalized;
-            detachDir.y += 0.3f; // Немного вверх
-            wheelRb.AddForce(detachDir * detachForce, ForceMode.Impulse);
-            wheelRb.AddTorque(Random.insideUnitSphere * detachTorque, ForceMode.Impulse);
+            Vector3 dir = (pos - transform.position).normalized + Vector3.up * 0.5f;
+            rb.AddForce(dir.normalized * detachForce, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * detachTorque, ForceMode.Impulse);
 
-            // ── Добавляем коллайдер колесу, если нет ─────────────────────────────
-            if (wheelT.GetComponent<Collider>() == null)
+            Destroy(detached, 10f);
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (!drawGizmos || wheels == null) return;
+
+            foreach (var wheel in wheels)
             {
-                SphereCollider sc = wheelT.gameObject.AddComponent<SphereCollider>();
-                // Примерный радиус — настройте под ваши колёса
-                sc.radius = 0.3f;
-            }
+                if (wheel?.wheelMesh == null) continue;
 
-            // ── Эффект отпадания ─────────────────────────────────────────────────
-            if (wheel.detachEffectPrefab != null)
-            {
-                GameObject effect = Instantiate(
-                    wheel.detachEffectPrefab, detachPosition, detachRotation
+                float t = wheel.detachThreshold > 0f
+                    ? Mathf.Clamp01(wheel.accumulatedDeformation / wheel.detachThreshold)
+                    : 0f;
+
+                Gizmos.color = wheel.detached
+                    ? Color.red
+                    : Color.Lerp(Color.green, Color.yellow, t);
+
+                Gizmos.DrawWireSphere(wheel.wheelMesh.position, wheel.vertexCheckRadius);
+
+                // Прогресс бар
+                Gizmos.color = Color.Lerp(Color.green, Color.red, t);
+                Vector3 start = wheel.wheelMesh.position + Vector3.up * (wheel.vertexCheckRadius + 0.1f);
+                Vector3 end = start + Vector3.right * t * 0.5f;
+                Gizmos.DrawLine(start, end);
+
+#if UNITY_EDITOR
+                UnityEditor.Handles.Label(
+                    start + Vector3.up * 0.1f,
+                    $"{wheel.name}\n{wheel.accumulatedDeformation:F2}/{wheel.detachThreshold:F2}"
                 );
-                Destroy(effect, 3f);
+#endif
             }
-
-            // ── Уничтожаем колесо через N секунд ─────────────────────────────────
-            Destroy(wheelT.gameObject, 10f);
-
-            Debug.Log($"[WheelDetachment] Колесо '{wheelT.name}' отпало! " +
-                      $"Деформация: {wheel.currentDeformation:F3}");
         }
     }
 }
