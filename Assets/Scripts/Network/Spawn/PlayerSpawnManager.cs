@@ -43,13 +43,41 @@ namespace Assets.Scripts.Network.Spawn
             if (!IsServer) return;
             if (spawnedPlayers.Contains(clientID)) return;
 
-            // TODO: Change spawn position
-            GameObject instance = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
-            NetworkObject networkObject = instance.GetComponent<NetworkObject>();
-            networkObject.SpawnAsPlayerObject(clientID);
-            spawnedPlayers.Add(clientID);
-            Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
-            Debug.Log(spawnedPlayers.ToArray().ToString());
+            var spawnPoints = SpawnPointsScript.Instance.getSpawnPoints();
+
+            bool spawned = false;
+
+            if (spawnPoints.Count == 0)
+                Debug.LogWarning("No spawn points at scene");
+            else
+                Debug.Log($"There're {spawnPoints.Count} at scene");
+            foreach (var point in spawnPoints)
+            {
+                if (!point.IsOccupied)
+                {
+                    Vector3 newPos = point.transform.position;
+
+                    GameObject instance = Instantiate(playerPrefab, newPos, Quaternion.identity);
+                    NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+                    networkObject.SpawnAsPlayerObject(clientID);
+                    spawnedPlayers.Add(clientID);
+                    spawned = true;
+                    Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
+                    Debug.Log(spawnedPlayers.ToArray().ToString());
+                    break;
+                }
+            }
+            if (!spawned) // If no free points
+            {
+                Debug.Log("No free spawn points, so instantiating in (0,0,0)");
+                GameObject instance = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
+                NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+                networkObject.SpawnAsPlayerObject(clientID);
+                spawnedPlayers.Add(clientID);
+                Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
+                Debug.Log(spawnedPlayers.ToArray().ToString());
+            }
+
         }
     }
 }

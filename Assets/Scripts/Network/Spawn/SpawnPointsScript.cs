@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Assets.Scripts.Network.Spawn
 {
@@ -6,7 +7,7 @@ namespace Assets.Scripts.Network.Spawn
     // TODO: Probably need to change to NetworkBehavior and synchronize between clients
     public class SpawnPointsScript : MonoBehaviour
     {
-        [SerializeField] private Transform[] spawnPoints;
+        [SerializeField] private List<SpawnPoint> spawnPoints;
         public static SpawnPointsScript Instance { get; private set; }
 
 
@@ -19,7 +20,15 @@ namespace Assets.Scripts.Network.Spawn
                 return;
             }
             Instance = this;
+
+
+            // SpawnPoint.OnSpawnPointCreated += AddSpawnPoint;
         }
-        public Transform[] getSpawnPoints() { return spawnPoints; }
+        public List<SpawnPoint> getSpawnPoints() { return spawnPoints; }
+
+        public void AddSpawnPoint(SpawnPoint point)
+        {
+            spawnPoints.Add(point);
+        }
     }
 }
