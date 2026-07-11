@@ -43,3 +43,5 @@ sysinfo.txt
 Logs
 MultiplayerDerby.slnx
 UserSettings
+
+.nvim.lua
