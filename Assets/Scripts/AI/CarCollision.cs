@@ -32,6 +32,7 @@ namespace Assets.Scripts.AI
         public AudioClip[] impactClips;
 
         private CarController carController;
+        private CarHealth carHealth;
         private Rigidbody rb;
 
         private float lastHitTime;
@@ -52,6 +53,7 @@ namespace Assets.Scripts.AI
         {
             rb = GetComponent<Rigidbody>();
             //carController = GetComponent<CarController>();
+            carHealth = GetComponent<CarHealth>();
 
             // Клон меша и группы вершин нужны КАЖДОМУ инстансу (сервер и все клиенты) —
             // деформация чисто визуальная и применяется локально на каждом peer'е отдельно.
@@ -197,10 +199,12 @@ namespace Assets.Scripts.AI
                 }
             }
 
-            // Авторитативный урон (если понадобится) должен жить только здесь, на сервере,
-            // и реплицироваться отдельно как NetworkVariable<float> health — НЕ через
-            // визуальный ClientRpc ниже. Использовать нужно уже пересчитанный force выше.
-            //carController.TakeDamage(force * maxDamage);
+            // Авторитативный урон живёт только здесь, на сервере, и реплицируется
+            // отдельно через NetworkVariable<float> внутри CarHealth — НЕ через
+            // визуальный ClientRpc ниже. Используем уже пересчитанный force выше.
+            // Атакующий — та машина, с которой столкнулись (otherCar), цель — мы сами.
+            if (carHealth != null)
+                carHealth.ApplyDamage(force * maxDamage, otherCar != null ? otherCar.carHealth : null);
 
             // ВАЖНО: переводим точку/нормаль в ЛОКАЛЬНЫЕ координаты корня машины ДО отправки.
             // NetworkTransform на клиенте почти всегда на кадр-другой "позади" сервера

@@ -1012,9 +1012,9 @@ GameObject:
   - component: {fileID: 3549497932509481173}
   - component: {fileID: 9154793490558195710}
   - component: {fileID: -8927902812728378708}
+  - component: {fileID: -3195225653020240178}
   - component: {fileID: -4770701760058486310}
   - component: {fileID: 7635186696024998705}
-  - component: {fileID: -3195225653020240178}
   - component: {fileID: -6616988544582934443}
   - component: {fileID: -7143757877499138969}
   - component: {fileID: -6418833470022641191}
@@ -1022,6 +1022,7 @@ GameObject:
   - component: {fileID: -5039093915575437136}
   - component: {fileID: 1693928508142922902}
   - component: {fileID: -3174844817805839089}
+  - component: {fileID: 6511463182313215507}
   m_Layer: 3
   m_Name: PlayerCarSport
   m_TagString: Untagged
@@ -1152,40 +1153,6 @@ MonoBehaviour:
   m_DefaultActionMap: Driving
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &-4770701760058486310
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8932994728899503279}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c320eebf2e63679479fe5de22553a7d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CarHealth
-  maxHealth: 100
-  spawnInvulnerability: 2
---- !u!114 &7635186696024998705
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8932994728899503279}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4be1fd9d0bb91684d884a9fd9c2f60c4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerScore
-  pointsPerDamage: 1
-  pointsPerKill: 250
-  basePointsPerTick: 2
-  survivalCoefficientGrowthPerSecond: 0.05
-  maxSurvivalCoefficient: 3
-  totalScore: 0
-  kills: 0
-  timeAliveThisLife: 0
 --- !u!114 &-3195225653020240178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1212,6 +1179,41 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+--- !u!114 &-4770701760058486310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8932994728899503279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c320eebf2e63679479fe5de22553a7d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarHealth
+  ShowTopMostFoldoutHeaderGroup: 1
+  maxHealth: 100
+  spawnInvulnerability: 2
+--- !u!114 &7635186696024998705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8932994728899503279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4be1fd9d0bb91684d884a9fd9c2f60c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerScore
+  pointsPerDamage: 1
+  pointsPerKill: 250
+  basePointsPerTick: 2
+  survivalCoefficientGrowthPerSecond: 0.05
+  maxSurvivalCoefficient: 3
+  totalScore: 0
+  kills: 0
+  timeAliveThisLife: 0
 --- !u!114 &-6616988544582934443
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1378,3 +1380,22 @@ MonoBehaviour:
   sparksPrefab: {fileID: 0}
   audioSource: {fileID: 0}
   impactClips: []
+--- !u!114 &6511463182313215507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8932994728899503279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd316e2a7b064b94e9d034a0f5bd8677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.AI.WheelDetachment
+  wheels: []
+  damageMultiplier: 8
+  minVertexDisplacement: 0.01
+  detachForce: 5
+  detachTorque: 3
+  enableLogs: 1
+  drawGizmos: 1
