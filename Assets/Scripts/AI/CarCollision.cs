@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Assets.Scripts.AI
 {
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(CarController))]
+    //[RequireComponent(typeof(CarController))]
     public class CarCollision : MonoBehaviour
     {
         [Header("Impact Thresholds")]
@@ -52,7 +52,7 @@ namespace Assets.Scripts.AI
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            carController = GetComponent<CarController>();
+            //carController = GetComponent<CarController>();
             InitDeformation();
 
             // Добавить эту строку:
@@ -156,7 +156,7 @@ namespace Assets.Scripts.AI
         private void OnCollisionEnter(Collision collision)
         {
             if (Time.time - lastHitTime < hitCooldown) return;
-            if (carController.IsDead) return;
+            //if (carController.IsDead) return;
 
             float impactSpeed = collision.relativeVelocity.magnitude;
             if (impactSpeed < minImpactSpeed) return;
@@ -169,7 +169,7 @@ namespace Assets.Scripts.AI
 
             ContactPoint contact = collision.GetContact(0);
 
-            carController.TakeDamage(force * maxDamage);
+            //carController.TakeDamage(force * maxDamage);
             DeformMeshes(contact.point, contact.normal, force);
             SpawnEffects(contact.point, contact.normal, force);
             PlayImpactSound(force);
