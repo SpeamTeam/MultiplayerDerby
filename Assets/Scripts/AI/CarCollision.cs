@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Unity.Netcode;
 
 namespace Assets.Scripts.AI
 {
     [RequireComponent(typeof(Rigidbody))]
     //[RequireComponent(typeof(CarController))]
-    public class CarCollision : MonoBehaviour
+    public class CarCollision : NetworkBehaviour
     {
         [Header("Impact Thresholds")]
         public float minImpactSpeed = 3f;
@@ -45,17 +46,17 @@ namespace Assets.Scripts.AI
         // MeshCollider, привязанный к каждому MeshFilter
         private MeshCollider[] linkedColliders;
 
-        // Добавьте поле после linkedColliders:
         private WheelDetachment wheelDetachment;
 
-        // В конце Awake():
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
             //carController = GetComponent<CarController>();
+
+            // Клон меша и группы вершин нужны КАЖДОМУ инстансу (сервер и все клиенты) —
+            // деформация чисто визуальная и применяется локально на каждом peer'е отдельно.
             InitDeformation();
 
-            // Добавить эту строку:
             wheelDetachment = GetComponent<WheelDetachment>();
         }
 
@@ -97,7 +98,6 @@ namespace Assets.Scripts.AI
 
                 if (linkedColliders[m] != null)
                 {
-                    // Назначаем клонированный меш коллайдеру сразу при старте
                     ApplyMeshToCollider(linkedColliders[m], clone);
                     Debug.Log($"[CarCollision] MeshCollider найден для '{deformableMeshes[m].name}'.");
                 }
@@ -115,15 +115,12 @@ namespace Assets.Scripts.AI
         /// </summary>
         private MeshCollider FindLinkedCollider(MeshFilter filter)
         {
-            // Сначала ищем на том же объекте
             MeshCollider col = filter.GetComponent<MeshCollider>();
             if (col != null) return col;
 
-            // Затем ищем на родительском объекте (сам CarCollision)
             col = GetComponent<MeshCollider>();
             if (col != null) return col;
 
-            // Наконец — в дочерних объектах корневого объекта
             if (searchInChildren)
             {
                 col = GetComponentInChildren<MeshCollider>();
@@ -139,7 +136,6 @@ namespace Assets.Scripts.AI
         /// </summary>
         private static void ApplyMeshToCollider(MeshCollider collider, Mesh mesh)
         {
-            // Назначение null перед новым мешем сбрасывает внутренний кэш физического движка
             collider.sharedMesh = null;
             collider.sharedMesh = mesh;
         }
@@ -153,8 +149,13 @@ namespace Assets.Scripts.AI
             );
         }
 
+        // Физическое столкновение с реальным impulse существует ТОЛЬКО там, где Rigidbody
+        // не kinematic — то есть только на сервере (см. PlayerCarController: клиенты
+        // держат kinematic Rigidbody + отключённые WheelCollider'ы). На клиентах этот
+        // метод физически не вызовется для машина-машина/машина-стена столкновений.
         private void OnCollisionEnter(Collision collision)
         {
+            if (!IsServer) return;
             if (Time.time - lastHitTime < hitCooldown) return;
             //if (carController.IsDead) return;
 
@@ -169,13 +170,37 @@ namespace Assets.Scripts.AI
 
             ContactPoint contact = collision.GetContact(0);
 
+            // Авторитативный урон (если понадобится) должен жить только здесь, на сервере,
+            // и реплицироваться отдельно как NetworkVariable<float> health — НЕ через
+            // визуальный ClientRpc ниже.
             //carController.TakeDamage(force * maxDamage);
-            DeformMeshes(contact.point, contact.normal, force);
-            SpawnEffects(contact.point, contact.normal, force);
+
+            // ВАЖНО: переводим точку/нормаль в ЛОКАЛЬНЫЕ координаты корня машины ДО отправки.
+            // NetworkTransform на клиенте почти всегда на кадр-другой "позади" сервера
+            // (интерполяция). Если слать мировую точку и переводить её в локаль уже НА
+            // КЛИЕНТЕ через его текущий (чуть другой) transform, точка удара "уезжает"
+            // и не попадает в deformRadius — деформация тихо не происходит.
+            // Локальные координаты относительно машины от сетевой задержки не зависят.
+            Vector3 localHitPoint = transform.InverseTransformPoint(contact.point);
+            Vector3 localHitNormal = transform.InverseTransformDirection(contact.normal);
+
+            PlayImpactEffectsClientRpc(localHitPoint, localHitNormal, force);
+        }
+
+        [ClientRpc]
+        private void PlayImpactEffectsClientRpc(Vector3 localPoint, Vector3 localNormal, float force)
+        {
+            // Разворачиваем обратно в мировые координаты уже ТЕКУЩИМ transform'ом
+            // этого конкретного peer'а — рассинхрона по времени тут не возникает.
+            Vector3 worldPoint = transform.TransformPoint(localPoint);
+            Vector3 worldNormal = transform.TransformDirection(localNormal).normalized;
+
+            DeformMeshes(localPoint, force);
+            SpawnEffects(worldPoint, worldNormal, force);
             PlayImpactSound(force);
         }
 
-        private void DeformMeshes(Vector3 worldPoint, Vector3 worldNormal, float force)
+        private void DeformMeshes(Vector3 rootLocalPoint, float force)
         {
             if (deformableMeshes == null) return;
 
@@ -188,10 +213,12 @@ namespace Assets.Scripts.AI
                 Vector3[] verts = deformedVerts[m];
                 Vector3[] origVerts = originalVerts[m];
 
-                Vector3 localPoint = t.InverseTransformPoint(worldPoint);
+                // rootLocalPoint уже в локальных координатах корня машины — переводим
+                // в мир и обратно в локаль конкретного меша ТЕКУЩИМ transform'ом этого
+                // peer'а (см. комментарий в PlayImpactEffectsClientRpc выше).
+                Vector3 localPoint = t.InverseTransformPoint(transform.TransformPoint(rootLocalPoint));
                 Vector3 localCenter = t.InverseTransformPoint(transform.position);
 
-                // Направление вдавливания: от точки удара к центру машины
                 Vector3 inwardDir = (localCenter - localPoint).normalized;
 
                 var processedGroups = new HashSet<Vector3Int>();
@@ -238,10 +265,10 @@ namespace Assets.Scripts.AI
                     if (wheelDetachment != null)
                     {
                         wheelDetachment.OnMeshDeformedNearWheel(
-                            originalVerts[m],  // оригинальные вершины
-                            verts,             // деформированные вершины
-                            t,                 // Transform меша
-                            force              // сила удара
+                            originalVerts[m],
+                            verts,
+                            t,
+                            force
                         );
                     }
                 }
