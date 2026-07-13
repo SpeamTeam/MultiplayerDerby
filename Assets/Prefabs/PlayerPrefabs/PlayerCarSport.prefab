@@ -1021,6 +1021,7 @@ GameObject:
   - component: {fileID: 3016440026682865028}
   - component: {fileID: -5039093915575437136}
   - component: {fileID: 1693928508142922902}
+  - component: {fileID: -3174844817805839089}
   m_Layer: 3
   m_Name: PlayerCarSport
   m_TagString: Untagged
@@ -1336,8 +1337,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkRigidbody
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkRigidbodyBaseExpanded: 0
-  UseRigidBodyForMotion: 1
-  AutoUpdateKinematicState: 0
+  UseRigidBodyForMotion: 0
+  AutoUpdateKinematicState: 1
   AutoSetKinematicOnDespawn: 1
 --- !u!114 &1693928508142922902
 MonoBehaviour:
@@ -1352,3 +1353,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DebugHud
   watchedCars: []
+--- !u!114 &-3174844817805839089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8932994728899503279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ed3067417a852b479859689086601f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.AI.CarCollision
+  minImpactSpeed: 3
+  maxImpactSpeed: 25
+  maxDamage: 40
+  deformableMeshes:
+  - {fileID: 8323152299558148092}
+  deformRadius: 0.6
+  maxDeformDepth: 0.25
+  updateMeshColliders: 1
+  searchInChildren: 1
+  sparksPrefab: {fileID: 0}
+  audioSource: {fileID: 0}
+  impactClips: []
