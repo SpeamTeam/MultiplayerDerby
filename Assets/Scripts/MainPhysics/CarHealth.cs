@@ -113,6 +113,16 @@ public class CarHealth : NetworkBehaviour
         Debug.Log("GODDAMN, I'M SO DEAD RN");
     }
 
+    [ContextMenu("Kill Myself")]
+    public void DieFromEditor()
+    {
+        if (netIsDead.Value) return;
+        netIsDead.Value = true;
+        NotifyDiedClientRpc(0);
+        if (GameManager.Instance != null)
+            GameManager.Instance.HandleCarDeath(this);
+    }
+
     [ClientRpc]
     private void NotifyDiedClientRpc(ulong attackerNetworkId)
     {

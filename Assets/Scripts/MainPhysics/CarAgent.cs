@@ -1,3 +1,4 @@
+using Assets.Scripts.AI;
 using Assets.Scripts.Network;
 using Assets.Scripts.Network.Spawn;
 using Assets.Scripts.UI;
@@ -35,6 +36,7 @@ public class CarAgent : NetworkBehaviour
     private CarHealth health;
     private PlayerScore score;
     private PlayerInput input;
+    private CarCollision carCollision; // может отсутствовать — деформация/отпадение колёс необязательны
     // private DriverEjection driverEjection;
 
     // TODO: delete after debug hud become useless
@@ -45,6 +47,7 @@ public class CarAgent : NetworkBehaviour
     {
         health = GetComponent<CarHealth>();
         score = GetComponent<PlayerScore>();
+        carCollision = GetComponent<CarCollision>();
         // driverEjection = GetComponent<DriverEjection>(); // может отсутствовать — необязательный компонент
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (controller == null) controller = GetComponent<PlayerCarController>();
@@ -143,8 +146,10 @@ public class CarAgent : NetworkBehaviour
         health.ResetState();
         // driverEjection?.ResetState();
         score.OnRespawn(); // сбрасывает коэффициент за время жизни, totalScore не трогает
+        carCollision?.ServerNotifyRespawn(); // откатывает деформацию меша и возвращает отпавшие колёса
 
         if (controller != null) controller.enabled = true;
+        Debug.Log("SOME PLAYER RESPAWNED!");
     }
 
     private void GetRespawnPose(out Vector3 position, out Quaternion rotation)
