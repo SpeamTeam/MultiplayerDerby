@@ -1165,7 +1165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 704096593
+  GlobalObjectIdHash: 656957996
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1392,7 +1392,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd316e2a7b064b94e9d034a0f5bd8677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.AI.WheelDetachment
-  wheels: []
+  wheels:
+  - name: FL
+    wheelMesh: {fileID: 6256000490887540306}
+    wheelCollider: {fileID: 5730040203952232317}
+    vertexCheckRadius: 0.5
+    detachThreshold: 0.3
+    accumulatedDeformation: 0
+    detached: 0
+  - name: FR
+    wheelMesh: {fileID: 934128749554787388}
+    wheelCollider: {fileID: 6891086613295758990}
+    vertexCheckRadius: 0.5
+    detachThreshold: 0.3
+    accumulatedDeformation: 0
+    detached: 0
+  - name: RL
+    wheelMesh: {fileID: 169715992642059624}
+    wheelCollider: {fileID: 5421187215723039018}
+    vertexCheckRadius: 0.5
+    detachThreshold: 0.3
+    accumulatedDeformation: 0
+    detached: 0
+  - name: RR
+    wheelMesh: {fileID: 5172045457080220489}
+    wheelCollider: {fileID: 1796747413643405469}
+    vertexCheckRadius: 0.5
+    detachThreshold: 0.3
+    accumulatedDeformation: 0
+    detached: 0
   damageMultiplier: 8
   minVertexDisplacement: 0.01
   detachForce: 5

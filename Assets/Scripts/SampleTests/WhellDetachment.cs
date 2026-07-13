@@ -183,6 +183,7 @@ namespace Assets.Scripts.AI
 
             // 3. Скрываем оригинал
             originalWheel.gameObject.SetActive(false);
+            wheel.wheelCollider.gameObject.SetActive(false);
 
             // 4. Физика
             SphereCollider col = detached.AddComponent<SphereCollider>();

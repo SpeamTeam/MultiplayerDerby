@@ -1,2 +1,15 @@
 fileFormatVersion: 2
 guid: 7ad7f37839ec0004d96d5ae825098384
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - gameConfig: {fileID: 11400000, guid: 1bd1be87d34859e419d1dde2fe7d5baa, type: 2}
+  - networkProviderPrefab: {instanceID: 0}
+  - networkManager: {instanceID: 0}
+  - unityTransport: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
