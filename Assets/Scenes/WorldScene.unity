@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 703062ff711a8e14eb1903dc6d8fadbe, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 03389866351d19a47adc95c57d054097, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -93,7 +93,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: c27b218a5788fd146a289c8ad385d39b, type: 2}
   m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
@@ -229,6 +229,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 910443201254941300, guid: 62ccc1eecab108d4e93e068f04d65961, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1226970170}
+    - targetCorrespondingSourceObject: {fileID: 5601942238823495436, guid: 62ccc1eecab108d4e93e068f04d65961, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 590472052}
   m_SourcePrefab: {fileID: 100100000, guid: 62ccc1eecab108d4e93e068f04d65961, type: 3}
 --- !u!1 &419519254 stripped
 GameObject:
@@ -257,6 +260,33 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!1 &590472050 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5601942238823495436, guid: 62ccc1eecab108d4e93e068f04d65961, type: 3}
+  m_PrefabInstance: {fileID: 419519253}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &590472052
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590472050}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -4638878185068127658, guid: 62ccc1eecab108d4e93e068f04d65961, type: 3}
 --- !u!1001 &886027553
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1175,7 +1205,7 @@ Terrain:
   m_TreeMaximumFullLODCount: 50
   m_DetailObjectDistance: 80
   m_DetailObjectDensity: 1
-  m_HeightmapPixelError: 5
+  m_HeightmapPixelError: 1
   m_SplatMapDistance: 1000
   m_HeightmapMinimumLODSimplification: 0
   m_HeightmapMaximumLOD: 0
