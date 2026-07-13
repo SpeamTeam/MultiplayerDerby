@@ -1168,6 +1168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ed3067417a852b479859689086601f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarCollision
+  ShowTopMostFoldoutHeaderGroup: 1
   minImpactSpeed: 10
   maxImpactSpeed: 40
   maxDamage: 900
@@ -1246,6 +1247,67 @@ MonoBehaviour:
   detachTorque: 3
   enableLogs: 1
   drawGizmos: 1
+--- !u!114 &491250815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 491250800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e71c53ff74254488bdab46e0c24320, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCarController
+  ShowTopMostFoldoutHeaderGroup: 1
+  wheelFL: {fileID: 0}
+  wheelFR: {fileID: 0}
+  wheelRL: {fileID: 0}
+  wheelRR: {fileID: 0}
+  visualFL: {fileID: 0}
+  visualFR: {fileID: 0}
+  visualRL: {fileID: 0}
+  visualRR: {fileID: 0}
+  motorForce: 1500
+  maxSteerAngle: 30
+  slowdownOnReleaseSpeed: 30
+  steerSpeedReference: 25
+  minSteerAngleFactor: 0.35
+  boostMultiplier: 2
+  boostMaxSpeed: 35
+  handbrakeTorque: 3000
+  steerSpeed: 10
+  downforceAmount: 10
+  droppedStiffness: 0.5
+  rpmToDegreesPerSecond: 6
+  playerInput: {fileID: 0}
+  centerOfMass: {x: 0, y: -0.3, z: 0}
+--- !u!114 &491250816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 491250800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 555904918
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &538209829
 GameObject:
   m_ObjectHideFlags: 0
@@ -2419,6 +2481,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9193091905229099719, guid: 5a826e1a9f9a0a74fbf63d825c3e464a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1656157275}
+    - targetCorrespondingSourceObject: {fileID: 9193091905229099719, guid: 5a826e1a9f9a0a74fbf63d825c3e464a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1656157279}
     - targetCorrespondingSourceObject: {fileID: 9193091905229099717, guid: 5a826e1a9f9a0a74fbf63d825c3e464a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 670304126}
@@ -2791,6 +2856,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ed3067417a852b479859689086601f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarCollision
+  ShowTopMostFoldoutHeaderGroup: 1
   minImpactSpeed: 10
   maxImpactSpeed: 40
   maxDamage: 900
@@ -2840,6 +2906,67 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
   m_PrefabInstance: {fileID: 2139282774}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &963667845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963667834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e71c53ff74254488bdab46e0c24320, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCarController
+  ShowTopMostFoldoutHeaderGroup: 1
+  wheelFL: {fileID: 0}
+  wheelFR: {fileID: 0}
+  wheelRL: {fileID: 0}
+  wheelRR: {fileID: 0}
+  visualFL: {fileID: 0}
+  visualFR: {fileID: 0}
+  visualRL: {fileID: 0}
+  visualRR: {fileID: 0}
+  motorForce: 1500
+  maxSteerAngle: 30
+  slowdownOnReleaseSpeed: 30
+  steerSpeedReference: 25
+  minSteerAngleFactor: 0.35
+  boostMultiplier: 2
+  boostMaxSpeed: 35
+  handbrakeTorque: 3000
+  steerSpeed: 10
+  downforceAmount: 10
+  droppedStiffness: 0.5
+  rpmToDegreesPerSecond: 6
+  playerInput: {fileID: 0}
+  centerOfMass: {x: 0, y: -0.3, z: 0}
+--- !u!114 &963667846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963667834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3437156353
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1036886447
 GameObject:
   m_ObjectHideFlags: 0
@@ -3311,6 +3438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ed3067417a852b479859689086601f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarCollision
+  ShowTopMostFoldoutHeaderGroup: 1
   minImpactSpeed: 10
   maxImpactSpeed: 40
   maxDamage: 900
@@ -3360,6 +3488,67 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
   m_PrefabInstance: {fileID: 1266845142}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1077947417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077947407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e71c53ff74254488bdab46e0c24320, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCarController
+  ShowTopMostFoldoutHeaderGroup: 1
+  wheelFL: {fileID: 0}
+  wheelFR: {fileID: 0}
+  wheelRL: {fileID: 0}
+  wheelRR: {fileID: 0}
+  visualFL: {fileID: 0}
+  visualFR: {fileID: 0}
+  visualRL: {fileID: 0}
+  visualRR: {fileID: 0}
+  motorForce: 1500
+  maxSteerAngle: 30
+  slowdownOnReleaseSpeed: 30
+  steerSpeedReference: 25
+  minSteerAngleFactor: 0.35
+  boostMultiplier: 2
+  boostMaxSpeed: 35
+  handbrakeTorque: 3000
+  steerSpeed: 10
+  downforceAmount: 10
+  droppedStiffness: 0.5
+  rpmToDegreesPerSecond: 6
+  playerInput: {fileID: 0}
+  centerOfMass: {x: 0, y: -0.3, z: 0}
+--- !u!114 &1077947418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1077947407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 206872458
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1079329856
 GameObject:
   m_ObjectHideFlags: 0
@@ -3751,6 +3940,9 @@ PrefabInstance:
       addedObject: {fileID: 491250804}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 491250816}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 491250810}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
@@ -3767,6 +3959,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 491250814}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 491250815}
   m_SourcePrefab: {fileID: 100100000, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
 --- !u!1 &1230925900
 GameObject:
@@ -4115,6 +4310,9 @@ PrefabInstance:
       addedObject: {fileID: 1077947413}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1077947418}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1077947412}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
@@ -4128,6 +4326,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1077947408}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1077947417}
   m_SourcePrefab: {fileID: 100100000, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
 --- !u!1 &1298345988
 GameObject:
@@ -4838,6 +5039,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ed3067417a852b479859689086601f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarCollision
+  ShowTopMostFoldoutHeaderGroup: 1
   minImpactSpeed: 10
   maxImpactSpeed: 40
   maxDamage: 900
@@ -4887,6 +5089,67 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
   m_PrefabInstance: {fileID: 1733776010}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1419376216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419376206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e71c53ff74254488bdab46e0c24320, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCarController
+  ShowTopMostFoldoutHeaderGroup: 1
+  wheelFL: {fileID: 0}
+  wheelFR: {fileID: 0}
+  wheelRL: {fileID: 0}
+  wheelRR: {fileID: 0}
+  visualFL: {fileID: 0}
+  visualFR: {fileID: 0}
+  visualRL: {fileID: 0}
+  visualRR: {fileID: 0}
+  motorForce: 1500
+  maxSteerAngle: 30
+  slowdownOnReleaseSpeed: 30
+  steerSpeedReference: 25
+  minSteerAngleFactor: 0.35
+  boostMultiplier: 2
+  boostMaxSpeed: 35
+  handbrakeTorque: 3000
+  steerSpeed: 10
+  downforceAmount: 10
+  droppedStiffness: 0.5
+  rpmToDegreesPerSecond: 6
+  playerInput: {fileID: 0}
+  centerOfMass: {x: 0, y: -0.3, z: 0}
+--- !u!114 &1419376217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419376206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 53418170
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1 &1473119107
 GameObject:
   m_ObjectHideFlags: 0
@@ -5239,6 +5502,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ed3067417a852b479859689086601f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarCollision
+  ShowTopMostFoldoutHeaderGroup: 1
   minImpactSpeed: 10
   maxImpactSpeed: 40
   maxDamage: 500
@@ -5327,6 +5591,32 @@ MonoBehaviour:
   applyOnKey: 1
   applyKey: 32
   normalizeDirection: 1
+--- !u!114 &1656157279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1656157273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3648749820
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!1001 &1671266158
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5502,6 +5792,9 @@ PrefabInstance:
       addedObject: {fileID: 1419376212}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1419376217}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1419376211}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
@@ -5515,6 +5808,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1419376207}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1419376216}
   m_SourcePrefab: {fileID: 100100000, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
 --- !u!1 &1784153424
 GameObject:
@@ -7604,6 +7900,9 @@ PrefabInstance:
       addedObject: {fileID: 963667841}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 963667846}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 963667840}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
@@ -7620,6 +7919,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 963667835}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 963667845}
   m_SourcePrefab: {fileID: 100100000, guid: 41c288592429ad74ea436c2cc1011e3c, type: 3}
 --- !u!1 &26733952389011758
 GameObject:

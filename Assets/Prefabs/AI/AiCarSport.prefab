@@ -1011,7 +1011,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3549497932509481173}
   - component: {fileID: 9154793490558195710}
-  - component: {fileID: -8927902812728378708}
   - component: {fileID: -3195225653020240178}
   - component: {fileID: -4770701760058486310}
   - component: {fileID: 7635186696024998705}
@@ -1023,8 +1022,9 @@ GameObject:
   - component: {fileID: 1693928508142922902}
   - component: {fileID: -3174844817805839089}
   - component: {fileID: 6511463182313215507}
+  - component: {fileID: 6883463589842003334}
   m_Layer: 3
-  m_Name: PlayerCarSport
+  m_Name: AiCarSport
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1075,100 +1075,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &-8927902812728378708
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8932994728899503279}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: -944628639613478452, guid: 8402c4387114ca943a3e975b92466701, type: 3}
-  m_NotificationBehavior: 2
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents:
-  - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: -6616988544582934443}
-        m_TargetAssemblyTypeName: PlayerCarController, Assembly-CSharp
-        m_MethodName: OnAccelerate
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-    m_ActionId: 46e5d5a4-6ec7-4d29-be7f-7399582b543b
-    m_ActionName: 'Driving/Accelerate[/Keyboard/s,/Keyboard/w]'
-  - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: -6616988544582934443}
-        m_TargetAssemblyTypeName: PlayerCarController, Assembly-CSharp
-        m_MethodName: OnSteer
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-    m_ActionId: eea0a557-fc7f-4bef-94fe-50a010a612a5
-    m_ActionName: 'Driving/Steer[/Keyboard/a,/Keyboard/d]'
-  - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: -6616988544582934443}
-        m_TargetAssemblyTypeName: PlayerCarController, Assembly-CSharp
-        m_MethodName: OnBrake
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-    m_ActionId: f04ba58a-8b58-493a-8ac6-ea760fed6789
-    m_ActionName: 'Driving/Brake[/Keyboard/space]'
-  - m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: -6418833470022641191}
-        m_TargetAssemblyTypeName: CarAgent, Assembly-CSharp
-        m_MethodName: ActivatePauseMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-    m_ActionId: 87ada800-49e6-4bea-bd1c-9e9b3f89d533
-    m_ActionName: 'Driving/PauseMenu[/Keyboard/escape]'
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: 
-  m_DefaultActionMap: Driving
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
 --- !u!114 &-3195225653020240178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1181,7 +1087,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 656957996
+  GlobalObjectIdHash: 1677634571
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1441,3 +1347,30 @@ MonoBehaviour:
   detachTorque: 3
   enableLogs: 1
   drawGizmos: 1
+--- !u!114 &6883463589842003334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8932994728899503279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05997c92709210d44bc7238c99feb2ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.AI.CarNavMeshAgent
+  target: {fileID: 0}
+  pathUpdateInterval: 0.5
+  waypointReachDistance: 2
+  destinationReachDistance: 3
+  steeringSensitivity: 1.5
+  lookAheadDistance: 5
+  approachDistance: 10
+  minApproachSpeed: 0.3
+  cornerSlowdownFactor: 0.5
+  sharpTurnAngle: 45
+  allowReversing: 1
+  stuckCheckInterval: 2
+  stuckThreshold: 0.5
+  reverseTime: 1.5
+  showDebugGizmos: 1

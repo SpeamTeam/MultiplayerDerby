@@ -103,8 +103,13 @@ public class CarHealth : NetworkBehaviour
         if (netIsDead.Value) return;
         netIsDead.Value = true;
         NotifyDiedClientRpc(attacker != null ? attacker.NetworkObjectId : 0);
-        // Заметь: сам respawn / отключение управления делает внешний менеджер,
-        // подписавшийся на OnDied. Этот класс не знает про геймплейные правила.
+        // Заметь: отключение управления делает внешний менеджер, подписавшийся на OnDied.
+        // Этот класс не знает про геймплейные правила — respawn он только ЗАКАЗЫВАЕТ
+        // у GameManager (тот читает задержку/автореспавн из GameConfig и поручает сам
+        // респавн NetworkProvider'у, server-authoritative). Die() выполняется только
+        // на сервере (см. IsServer-проверку в ApplyDamage), так что вызов ниже — тоже.
+        if (GameManager.Instance != null)
+            GameManager.Instance.HandleCarDeath(this);
         Debug.Log("GODDAMN, I'M SO DEAD RN");
     }
 

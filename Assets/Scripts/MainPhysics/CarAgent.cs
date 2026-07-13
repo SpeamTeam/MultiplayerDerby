@@ -1,18 +1,23 @@
+using Assets.Scripts.Network;
+using Assets.Scripts.Network.Spawn;
+using Assets.Scripts.UI;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// "Мозг" одной машины: связывает CarHealth + PlayerScore + управление + респавн.
 /// Подписывается на события здоровья и раздаёт очки нужным сторонам.
 ///
 /// Почему отдельный класс, а не всё в CarHealth:
-/// CarHealth должен оставаться тупым хранилищем HP, чтобы его легко было
-/// сделать сетевым. Вся ГЕЙМПЛЕЙНАЯ РЕАКЦИЯ (начислить очки, отключить
-/// управление, заказать респавн) живёт здесь.
+/// CarHealth должен оставаться тупым хранилищем HP. Вся ГЕЙМПЛЕЙНАЯ РЕАКЦИЯ
+/// (начислить очки, отключить управление) живёт здесь.
 ///
-/// СЕТЬ (для коллег): начисление очков и respawn — серверные операции.
-/// Обернуть тело HandleDied в if (IsServer). Отключение управления
-/// (PlayerCarController.enabled) — тоже через сервер/овнершип.
+/// СЕТЬ: сам факт респавна теперь заказывает CarHealth — он на смерти (на сервере)
+/// зовёт GameManager.HandleCarDeath, тот через задержку из GameConfig зовёт
+/// NetworkProvider.Respawn(clientId), а NetworkProvider уже находит нужный CarAgent
+/// (через регистрацию ниже) и вызывает ServerRespawn(). HandleDied здесь больше
+/// НЕ планирует респавн сам — иначе он выполнялся бы независимо на каждом пире.
 /// </summary>
 [RequireComponent(typeof(CarHealth))]
 [RequireComponent(typeof(PlayerScore))]
@@ -20,22 +25,21 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerCarController))]
 [RequireComponent(typeof(CameraFollow))]
+// [RequireComponent (typeof(PlayerInput))]
 public class CarAgent : NetworkBehaviour
 {
     [Header("Ссылки")]
     [SerializeField] private PlayerCarController controller;      // чтобы отключать управление при смерти
     [SerializeField] private Rigidbody rb;
 
-    [Header("Респавн")]
-    public bool autoRespawn = true;
-    public float respawnDelay = 3f;
-
     private CarHealth health;
     private PlayerScore score;
+    private PlayerInput input;
     // private DriverEjection driverEjection;
 
     // TODO: delete after debug hud become useless
     public WheelSetupScript wheelSetup;
+
 
     private void Awake()
     {
@@ -45,12 +49,39 @@ public class CarAgent : NetworkBehaviour
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (controller == null) controller = GetComponent<PlayerCarController>();
     }
+
+    public override void OnNetworkSpawn()
+    {
+        // Список только для настоящих игроков (таргетинг ботов, статистика и т.п.) —
+        // боты туда не попадают. Респавн по смерти теперь не завязан на этот список
+        // (см. CarHealth.Die → GameManager.HandleCarDeath → NetworkProvider.RespawnObject),
+        // поэтому регистрация тут не критична для респавна, но семантика "playersList"
+        // должна оставаться честной.
+        if (IsServer && !IsBotControlled && NetworkProvider.Instance != null)
+            NetworkProvider.Instance.RegisterPlayer(this);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (IsServer && !IsBotControlled && NetworkProvider.Instance != null)
+            NetworkProvider.Instance.UnregisterPlayer(this);
+    }
+
+    private bool IsBotControlled => controller != null && controller.IsBotControlled;
+
     private void Start()
     {
-        if (!IsOwner) return;
+        // Ботов CarNavMeshAgent помечает через PlayerCarController.ConfigureAsBot().
+        // Без этой проверки бот (у которого по умолчанию OwnerClientId == серверу)
+        // на хосте прошёл бы IsOwner-проверку и увёл бы камеру/паузу с реального игрока.
+        if (!IsOwner || IsBotControlled) return;
 
         CameraFollow cameraFollow = GetComponent<CameraFollow>();
         if (cameraFollow != null) cameraFollow.InitializeCamera();
+
+        input = GetComponent<PlayerInput>();
+
+        PauseMenuScript.Instance.MenuDeactivated += SetActiveInput;
     }
 
     private void OnEnable()
@@ -82,7 +113,8 @@ public class CarAgent : NetworkBehaviour
 
     private void HandleDied(CarHealth attacker)
     {
-        // Отключаем управление и глушим машину.
+        // Отключаем управление и глушим машину. Респавн CarHealth закажет отдельно
+        // (см. комментарий класса) — здесь его планировать больше не нужно.
         if (controller != null) controller.enabled = false;
 
         // Начисляем килл атакующему (если это не самоуничтожение).
@@ -92,26 +124,17 @@ public class CarAgent : NetworkBehaviour
             if (killerAgent != null)
                 killerAgent.score.AddKill();
         }
-
-        if (autoRespawn)
-            Invoke(nameof(Respawn), respawnDelay);
     }
 
-    private void Respawn()
+    /// <summary>
+    /// Фактически перемещает и оживляет машину. Авторитативно — вызывать
+    /// только на сервере (только NetworkProvider.Respawn должен его звать).
+    /// </summary>
+    public void ServerRespawn()
     {
-        Vector3 spawnPos;
-        Quaternion spawnRot;
+        if (!IsServer) return;
 
-        if (SpawnManager.Instance != null)
-        {
-            SpawnManager.Instance.GetSpawnPose(out spawnPos, out spawnRot);
-        }
-        else
-        {
-            // Заглушка на случай отсутствия SpawnManager в сцене (например, в тестовой сцене).
-            spawnPos = transform.position + Vector3.up * 1f;
-            spawnRot = Quaternion.identity;
-        }
+        GetRespawnPose(out Vector3 spawnPos, out Quaternion spawnRot);
 
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
@@ -122,5 +145,50 @@ public class CarAgent : NetworkBehaviour
         score.OnRespawn(); // сбрасывает коэффициент за время жизни, totalScore не трогает
 
         if (controller != null) controller.enabled = true;
+    }
+
+    private void GetRespawnPose(out Vector3 position, out Quaternion rotation)
+    {
+        var spawnPoints = SpawnPointsScript.Instance != null ? SpawnPointsScript.Instance.getSpawnPoints() : null;
+
+        if (spawnPoints != null && spawnPoints.Count > 0)
+        {
+            foreach (var point in spawnPoints)
+            {
+                if (point == null || point.IsOccupied) continue;
+                position = point.transform.position;
+                rotation = point.transform.rotation;
+                return;
+            }
+
+            // Все точки заняты — используем первую, лишь бы не блокировать респавн намертво.
+            position = spawnPoints[0].transform.position;
+            rotation = spawnPoints[0].transform.rotation;
+            return;
+        }
+
+        // Заглушка на случай отсутствия точек спавна в сцене (например, в тестовой сцене).
+        position = transform.position + Vector3.up * 1f;
+        rotation = Quaternion.identity;
+    }
+
+    public void ActivatePauseMenu()
+    {
+        var pauseMenu = PauseMenuScript.Instance;
+        if (!pauseMenu.gameObject.activeSelf)
+        {
+            SetActiveInput(false);
+            pauseMenu.gameObject.SetActive(true);
+        }
+        else
+        {
+            SetActiveInput(true);
+            pauseMenu.gameObject.SetActive(false);
+        }
+    }
+    public void SetActiveInput(bool flag)
+    {
+        if (input != null)
+            input.enabled = flag;
     }
 }

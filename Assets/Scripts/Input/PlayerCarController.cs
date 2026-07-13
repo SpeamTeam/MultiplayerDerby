@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 
-[RequireComponent(typeof(PlayerInput))]
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerCarController : NetworkBehaviour
 {
@@ -78,16 +77,49 @@ public class PlayerCarController : NetworkBehaviour
     private float visualSpinFront;
     private float visualSpinRear;
 
+    // Помечается true через ConfigureAsBot() — у ботов (CarNavMeshAgent) нет владеющего
+    // клиента с устройством ввода, но по умолчанию их NetworkObject всё равно принадлежит
+    // серверу, так что на хосте IsOwner был бы true. Флаг не даёт подключить PlayerInput
+    // в этом случае и не даёт ownership-вводу конфликтовать с SetBotInputs.
+    private bool isBotControlled;
+    public bool IsBotControlled => isBotControlled;
+
+    /// <summary>Скорость в км/ч — для AI (CarNavMeshAgent), торможения на поворотах и т.п.</summary>
+    public float CurrentSpeed => rb != null ? rb.linearVelocity.magnitude * 3.6f : 0f;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         if (playerInput == null) playerInput = GetComponent<PlayerInput>();
     }
 
+    /// <summary>
+    /// Помечает машину как управляемую ботом (CarNavMeshAgent). Вызывать до OnNetworkSpawn
+    /// (например, из Awake бота) — иначе PlayerInput этой машины успеет подключиться к
+    /// локальным устройствам ввода на хосте.
+    /// </summary>
+    public void ConfigureAsBot()
+    {
+        isBotControlled = true;
+    }
+
+    /// <summary>
+    /// Прямая установка ввода для бота — минуя ServerRpc/PlayerInput, т.к. у бота нет
+    /// владеющего клиента, который мог бы их прислать. Вызывать только на сервере
+    /// (см. CarNavMeshAgent — он сам гоняет свою логику только там же).
+    /// </summary>
+    public void SetBotInputs(float motor, float steer, bool brake)
+    {
+        if (!IsServer) return;
+        moveInput = Mathf.Clamp(motor, -1f, 1f);
+        steerInput = Mathf.Clamp(steer, -1f, 1f);
+        brakeHeld = brake;
+    }
+
     public override void OnNetworkSpawn()
     {
-        // Ввод с устройства нужен только владельцу
-        if (IsOwner)
+        // Ввод с устройства нужен только владельцу — и только если это не бот.
+        if (IsOwner && !isBotControlled)
             playerInput.actions.Enable();
 
         // Физику реально двигает только сервер — на остальных инстансах
@@ -109,7 +141,7 @@ public class PlayerCarController : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        if (IsOwner)
+        if (IsOwner && !isBotControlled)
             playerInput.actions.Disable();
     }
 
