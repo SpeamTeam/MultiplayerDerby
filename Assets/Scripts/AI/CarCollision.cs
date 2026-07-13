@@ -159,20 +159,47 @@ namespace Assets.Scripts.AI
             if (Time.time - lastHitTime < hitCooldown) return;
             //if (carController.IsDead) return;
 
-            float impactSpeed = collision.relativeVelocity.magnitude;
-            if (impactSpeed < minImpactSpeed) return;
+            ContactPoint contact = collision.GetContact(0);
+
+            // Меряем силу удара по компоненту скорости ВДОЛЬ НОРМАЛИ контакта, а не по
+            // полной collision.relativeVelocity. При обычной езде машина касается земли
+            // почти по касательной (скорость параллельна поверхности) — этот компонент
+            // маленький, даже если машина едет быстро. При падении и ударе о землю (или
+            // лобовом столкновении со стеной/другой машиной) скорость направлена именно
+            // по нормали — компонент большой. Так отличаем "зацепил кочку" от реального удара.
+            float normalImpactSpeed = Mathf.Abs(Vector3.Dot(collision.relativeVelocity, contact.normal));
+            if (normalImpactSpeed < minImpactSpeed) return;
 
             lastHitTime = Time.time;
 
             float force = Mathf.Clamp01(
-                (impactSpeed - minImpactSpeed) / (maxImpactSpeed - minImpactSpeed)
+                (normalImpactSpeed - minImpactSpeed) / (maxImpactSpeed - minImpactSpeed)
             );
 
-            ContactPoint contact = collision.GetContact(0);
+            // Если врезались в другого игрока (а не в статичное окружение — стену, землю),
+            // перераспределяем force по "вине": тот, чья собственная скорость вдоль нормали
+            // внесла больше в удар (активно въехал), получает меньше; тот, кто почти не
+            // двигался (в него въехали), получает больше. Сумма на двоих не меняется — это
+            // просто честное распределение исходного force, а не дополнительный урон.
+            Rigidbody otherRb = collision.rigidbody;
+            CarCollision otherCar = otherRb != null ? otherRb.GetComponent<CarCollision>() : null;
+
+            if (otherCar != null)
+            {
+                float myImpactSpeed = Mathf.Abs(Vector3.Dot(rb.linearVelocity, contact.normal));
+                float otherImpactSpeed = Mathf.Abs(Vector3.Dot(otherRb.linearVelocity, contact.normal));
+                float totalSpeed = myImpactSpeed + otherImpactSpeed;
+
+                if (totalSpeed > 0.01f)
+                {
+                    float otherContribution = otherImpactSpeed / totalSpeed;
+                    force *= otherContribution;
+                }
+            }
 
             // Авторитативный урон (если понадобится) должен жить только здесь, на сервере,
             // и реплицироваться отдельно как NetworkVariable<float> health — НЕ через
-            // визуальный ClientRpc ниже.
+            // визуальный ClientRpc ниже. Использовать нужно уже пересчитанный force выше.
             //carController.TakeDamage(force * maxDamage);
 
             // ВАЖНО: переводим точку/нормаль в ЛОКАЛЬНЫЕ координаты корня машины ДО отправки.
