@@ -31,7 +31,8 @@ public class CarAgent : NetworkBehaviour
 {
     [Header("Ссылки")]
     [SerializeField] private PlayerCarController controller;      // чтобы отключать управление при смерти
-    [SerializeField] private Rigidbody rb;
+    [SerializeField] private GameObject RagDollPrefab;
+    public Rigidbody rb;
 
     private CarHealth health;
     private PlayerInput input;
@@ -50,7 +51,10 @@ public class CarAgent : NetworkBehaviour
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (controller == null) controller = GetComponent<PlayerCarController>();
     }
-
+    private void DropRagdoll(CarHealth useless)
+    {
+        GameObject RagDollInstance = Instantiate(RagDollPrefab, transform.position + new Vector3(-0.25f, -0.473f, -0.038f), Quaternion.identity);
+    }
     public override void OnNetworkSpawn()
     {
         // Список только для настоящих игроков (таргетинг ботов, статистика и т.п.) —

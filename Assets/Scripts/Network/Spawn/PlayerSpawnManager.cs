@@ -8,6 +8,7 @@ namespace Assets.Scripts.Network.Spawn
     public class PlayerSpawnManager : NetworkBehaviour
     {
         private GameObject playerPrefab;
+        private GameObject RagDollPrefab;
 
         private List<ulong> spawnedPlayers;
 
@@ -17,6 +18,7 @@ namespace Assets.Scripts.Network.Spawn
 
             GameConfig gameConfig = GameManager.Instance.Config;
             playerPrefab = gameConfig.playerPrefab;
+            RagDollPrefab = gameConfig.RagDollPrefab;
 
             spawnedPlayers = new List<ulong>();
 
