@@ -1183,7 +1183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 704096593
+  GlobalObjectIdHash: 656957996
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1210,7 +1210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarHealth
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 100
+  maxHealth: 10
   spawnInvulnerability: 2
 --- !u!114 &7635186696024998705
 MonoBehaviour:
@@ -1293,6 +1293,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CarAgent
   ShowTopMostFoldoutHeaderGroup: 1
   controller: {fileID: -6616988544582934443}
+  RagDollPrefab: {fileID: 1686312719010305821, guid: 858fbda9e59b8e842b18f7a438a21b27, type: 3}
   rb: {fileID: 9154793490558195710}
   wheelSetup: {fileID: 600297000132327531}
 --- !u!114 &3016440026682865028
