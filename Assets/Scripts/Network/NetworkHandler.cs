@@ -25,6 +25,9 @@ namespace Assets.Scripts.Network
         [SerializeField] private NetworkManager networkManager;
         [SerializeField] private UnityTransport unityTransport;
 
+        // TODO: Add logic to that thing
+        public string localPlayerName;
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
