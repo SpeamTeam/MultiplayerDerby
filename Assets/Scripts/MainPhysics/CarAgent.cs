@@ -47,6 +47,7 @@ public class CarAgent : NetworkBehaviour
     {
         health = GetComponent<CarHealth>();
         carCollision = GetComponent<CarCollision>();
+        health.OnDied += DropRagdoll;
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (controller == null) controller = GetComponent<PlayerCarController>();
     }
