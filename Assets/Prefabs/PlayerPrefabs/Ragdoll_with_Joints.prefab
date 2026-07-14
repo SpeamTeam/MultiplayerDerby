@@ -299,8 +299,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4866757804674288322}
   - component: {fileID: 3739646183038161061}
-  - component: {fileID: 1807384794136213626}
-  - component: {fileID: 3497154580600597351}
+  - component: {fileID: 6883771175157775172}
+  - component: {fileID: 7181432452954340292}
   m_Layer: 0
   m_Name: mixamorig:LeftArm
   m_TagString: Untagged
@@ -316,14 +316,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 970916916660550898}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.04596292, y: -0.046757508, z: -0.71160656, w: 0.6995121}
-  m_LocalPosition: {x: 0.05, y: 0.155, z: -0.003}
+  m_LocalRotation: {x: -0.03773351, y: -0.038667694, z: -0.71209043, w: 0.70000595}
+  m_LocalPosition: {x: 0.050042633, y: 0.18546239, z: -0.007506592}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3636131166401591769}
   m_Father: {fileID: 6565313257661252978}
-  m_LocalEulerAnglesHint: {x: -7.519, y: 0, z: -90.982}
+  m_LocalEulerAnglesHint: {x: -6.194, y: -0.023, z: -90.979}
 --- !u!136 &3739646183038161061
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -347,7 +347,7 @@ CapsuleCollider:
   m_Height: 0.25574198
   m_Direction: 1
   m_Center: {x: 0, y: 0.12787099, z: 0}
---- !u!54 &1807384794136213626
+--- !u!54 &6883771175157775172
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -374,7 +374,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!144 &3497154580600597351
+--- !u!144 &7181432452954340292
 CharacterJoint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -481,7 +481,7 @@ Transform:
   m_GameObject: {fileID: 1686312719010305821}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.23306, y: -0.4999, z: -0.024248}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5224037, y: 0.5224037, z: 0.5224037}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -543,7 +543,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2611536599
+  GlobalObjectIdHash: 1731410852
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -572,8 +572,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   carAgent: {fileID: 0}
   Spinerb: {fileID: 3861992800333248090}
-  HandJoint1: {fileID: 23478031157400410}
-  HandJoint2: {fileID: 4474028494271618427}
+  HandJoint1: {fileID: 8552226252442119048}
+  HandJoint2: {fileID: 8891315816639100591}
 --- !u!114 &4966415455151571603
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -662,8 +662,8 @@ GameObject:
   - component: {fileID: 3636131166401591769}
   - component: {fileID: 8675487980704233194}
   - component: {fileID: 5931984123188774759}
-  - component: {fileID: 131633675246072755}
-  - component: {fileID: 23478031157400410}
+  - component: {fileID: 8552226252442119048}
+  - component: {fileID: 3860741883153212171}
   m_Layer: 0
   m_Name: mixamorig:LeftForeArm
   m_TagString: Untagged
@@ -679,14 +679,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1890339904218300753}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.08553698, y: 0.4301357, z: 0.019447923, w: 0.89849234}
-  m_LocalPosition: {x: -0.068, y: 0.434, z: 0.123}
+  m_LocalRotation: {x: 0.08695002, y: 0.3467469, z: 0.011598143, w: 0.9338478}
+  m_LocalPosition: {x: -0.020999094, y: 0.4040012, z: 0.14900045}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7295040107124428360}
   m_Father: {fileID: 4866757804674288322}
-  m_LocalEulerAnglesHint: {x: 7.873, y: 51.597, z: 6.29}
+  m_LocalEulerAnglesHint: {x: 8.879, y: 41.111, z: 4.758}
 --- !u!136 &8675487980704233194
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -737,7 +737,23 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!144 &131633675246072755
+--- !u!138 &8552226252442119048
+FixedJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1890339904218300753}
+  serializedVersion: 1
+  m_ConnectedBody: {fileID: 0}
+  m_ConnectedArticulationBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
+--- !u!144 &3860741883153212171
 CharacterJoint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -745,7 +761,7 @@ CharacterJoint:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1890339904218300753}
   serializedVersion: 3
-  m_ConnectedBody: {fileID: 1807384794136213626}
+  m_ConnectedBody: {fileID: 6883771175157775172}
   m_ConnectedArticulationBody: {fileID: 0}
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: -1, y: 0, z: 0}
@@ -781,22 +797,6 @@ CharacterJoint:
   m_BreakTorque: Infinity
   m_EnableCollision: 0
   m_EnablePreprocessing: 0
-  m_MassScale: 1
-  m_ConnectedMassScale: 1
---- !u!138 &23478031157400410
-FixedJoint:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1890339904218300753}
-  serializedVersion: 1
-  m_ConnectedBody: {fileID: 0}
-  m_ConnectedArticulationBody: {fileID: 0}
-  m_BreakForce: Infinity
-  m_BreakTorque: Infinity
-  m_EnableCollision: 0
-  m_EnablePreprocessing: 1
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &1902401319737058794
@@ -2014,8 +2014,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6132499319227270356}
   - component: {fileID: 3744567323148305177}
-  - component: {fileID: 6844732763776558500}
-  - component: {fileID: 5882734770409188953}
+  - component: {fileID: 4200460673382607038}
+  - component: {fileID: 836741872547329428}
   m_Layer: 0
   m_Name: mixamorig:RightArm
   m_TagString: Untagged
@@ -2031,14 +2031,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5053898020986464766}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.34506324, y: -0.33829954, z: 0.6236326, w: 0.614465}
-  m_LocalPosition: {x: -0.001, y: 0.223, z: 0.016}
+  m_LocalRotation: {x: 0.30798447, y: -0.3017687, z: 0.6427533, w: 0.63320565}
+  m_LocalPosition: {x: -0.00663166, y: 0.17489456, z: -0.034984615}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8767071727774444327}
   m_Father: {fileID: 8519202413034046114}
-  m_LocalEulerAnglesHint: {x: 57.78, y: 1.573, z: 91.717}
+  m_LocalEulerAnglesHint: {x: 51.074, y: 1.254, z: 91.457}
 --- !u!136 &3744567323148305177
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2062,7 +2062,7 @@ CapsuleCollider:
   m_Height: 0.25574142
   m_Direction: 1
   m_Center: {x: 0, y: 0.12787071, z: 0}
---- !u!54 &6844732763776558500
+--- !u!54 &4200460673382607038
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2089,7 +2089,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!144 &5882734770409188953
+--- !u!144 &836741872547329428
 CharacterJoint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3012,8 +3012,8 @@ GameObject:
   - component: {fileID: 8767071727774444327}
   - component: {fileID: 7371957100769887315}
   - component: {fileID: 3665031630547422930}
-  - component: {fileID: 5053428773366729630}
-  - component: {fileID: 4474028494271618427}
+  - component: {fileID: 8891315816639100591}
+  - component: {fileID: 5697583828081011092}
   m_Layer: 0
   m_Name: mixamorig:RightForeArm
   m_TagString: Untagged
@@ -3030,7 +3030,7 @@ Transform:
   m_GameObject: {fileID: 7017158095165550706}
   serializedVersion: 2
   m_LocalRotation: {x: 0.124018535, y: 0.07761858, z: 0.009731329, w: 0.9891916}
-  m_LocalPosition: {x: 0.114001535, y: 0.41000065, z: 0.050002545}
+  m_LocalPosition: {x: 0.114, y: 0.405, z: 0.049}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3087,7 +3087,23 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!144 &5053428773366729630
+--- !u!138 &8891315816639100591
+FixedJoint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7017158095165550706}
+  serializedVersion: 1
+  m_ConnectedBody: {fileID: 0}
+  m_ConnectedArticulationBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1
+--- !u!144 &5697583828081011092
 CharacterJoint:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3095,7 +3111,7 @@ CharacterJoint:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7017158095165550706}
   serializedVersion: 3
-  m_ConnectedBody: {fileID: 6844732763776558500}
+  m_ConnectedBody: {fileID: 4200460673382607038}
   m_ConnectedArticulationBody: {fileID: 0}
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
@@ -3131,22 +3147,6 @@ CharacterJoint:
   m_BreakTorque: Infinity
   m_EnableCollision: 0
   m_EnablePreprocessing: 0
-  m_MassScale: 1
-  m_ConnectedMassScale: 1
---- !u!138 &4474028494271618427
-FixedJoint:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7017158095165550706}
-  serializedVersion: 1
-  m_ConnectedBody: {fileID: 0}
-  m_ConnectedArticulationBody: {fileID: 0}
-  m_BreakForce: Infinity
-  m_BreakTorque: Infinity
-  m_EnableCollision: 0
-  m_EnablePreprocessing: 1
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &7393039312908051159

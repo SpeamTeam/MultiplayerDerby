@@ -41,8 +41,6 @@ public class CarAgent : NetworkBehaviour
 
     // TODO: delete after debug hud become useless
     public WheelSetupScript wheelSetup;
-    public Rigidbody HandPos1;
-    public Rigidbody HandPos2;
 
     private void Awake()
     {
