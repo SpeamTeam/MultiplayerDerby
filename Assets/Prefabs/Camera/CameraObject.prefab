@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 7858260900457654384}
   - component: {fileID: 781219476557837576}
   - component: {fileID: 1404983766050666109}
-  - component: {fileID: 2581158980976414701}
   - component: {fileID: 7888949422335021450}
   - component: {fileID: 7888949422335021451}
+  - component: {fileID: -2220241716195048145}
   m_Layer: 0
   m_Name: CameraObject
   m_TagString: Untagged
@@ -97,7 +97,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineOrbitalFollow
   TargetOffset: {x: 0, y: 0, z: 0}
   TrackerSettings:
-    BindingMode: 4
+    BindingMode: 3
     PositionDamping: {x: 1, y: 1, z: 1}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
@@ -109,7 +109,7 @@ MonoBehaviour:
       Radius: 3
       Height: 5
     Center:
-      Radius: 9
+      Radius: 6
       Height: 2.25
     Bottom:
       Radius: 4
@@ -122,28 +122,28 @@ MonoBehaviour:
     Range: {x: -180, y: 180}
     Wrap: 1
     Recentering:
-      Enabled: 0
+      Enabled: 1
       Wait: 1
       Time: 2
     Restrictions: 0
   VerticalAxis:
     Value: 17.5
-    Center: 17.5
+    Center: 20
     Range: {x: -10, y: 45}
     Wrap: 0
     Recentering:
-      Enabled: 0
-      Wait: 1
+      Enabled: 1
+      Wait: 0
       Time: 2
     Restrictions: 0
   RadialAxis:
-    Value: 1
-    Center: 1
-    Range: {x: 1, y: 1}
+    Value: 0.7
+    Center: 0.7
+    Range: {x: 0.7, y: 0.7}
     Wrap: 0
     Recentering:
-      Enabled: 0
-      Wait: 1
+      Enabled: 1
+      Wait: 0
       Time: 2
     Restrictions: 0
 --- !u!114 &7858260900457654384
@@ -244,26 +244,6 @@ MonoBehaviour:
         DecelTime: 0
   PlayerIndex: -1
   AutoEnableInputs: 1
---- !u!114 &2581158980976414701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2847609266289519275}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94e998f0c8655f6469b964f3e28f9163, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::OrbitalCameraControl
-  orbital: {fileID: 0}
-  horizontalSpeed: 21
-  verticalSpeed: 10
-  invertVertical: 0
-  zoomSpeed: 1
-  minRadius: 0.5
-  maxRadius: 2.3
-  zoomSmoothing: 2
 --- !u!114 &7888949422335021450
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -284,13 +264,52 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2847609266289519275}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7c9a1b34d5f48260a1c2d3e4f5a6b71, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraImpulseShake
   gain: 1
   dissipationDistance: 120
+--- !u!114 &-2220241716195048145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2847609266289519275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe43d662878a7c43bcd44d43c9e2094, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineDeoccluder
+  CollideAgainst:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  IgnoreTag: 
+  TransparentLayers:
+    serializedVersion: 2
+    m_Bits: 8
+  MinimumDistanceFromTarget: 0.4
+  AvoidObstacles:
+    Enabled: 1
+    DistanceLimit: 0
+    MinimumOcclusionTime: 0
+    CameraRadius: 1
+    UseFollowTarget:
+      Enabled: 0
+      YOffset: 0
+    Strategy: 1
+    MaximumEffort: 4
+    SmoothingTime: 0
+    Damping: 0.4
+    DampingWhenOccluded: 0.2
+  ShotQualityEvaluation:
+    Enabled: 0
+    OptimalDistance: 10
+    NearLimit: 5
+    FarLimit: 30
+    MaxQualityBoost: 0.2
 --- !u!1 &7733544352717299698
 GameObject:
   m_ObjectHideFlags: 0

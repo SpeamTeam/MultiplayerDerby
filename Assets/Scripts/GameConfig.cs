@@ -12,8 +12,15 @@ namespace Assets.Scripts
         public GameObject playerPrefab;
         public GameObject RagDollPrefab;
         public GameObject botPrefab;
-        public GameObject cameraPrefab;
 
+        [Header("Camera")]
+        public GameObject cameraPrefab;
+        public GameObject cameraTargetPrefab;
+
+        [Header("Camera Settings")]
+        public float distance = 4f;
+
+        [Header("Scene names")]
         public string worldSceneName = "WorldScene";
         public string menuSceneName = "MenuScene";
 

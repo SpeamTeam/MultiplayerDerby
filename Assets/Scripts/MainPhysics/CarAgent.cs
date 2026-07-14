@@ -47,7 +47,6 @@ public class CarAgent : NetworkBehaviour
     {
         health = GetComponent<CarHealth>();
         carCollision = GetComponent<CarCollision>();
-        // driverEjection = GetComponent<DriverEjection>(); // может отсутствовать — необязательный компонент
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (controller == null) controller = GetComponent<PlayerCarController>();
     }
@@ -89,7 +88,12 @@ public class CarAgent : NetworkBehaviour
         if (!IsOwner || IsBotControlled) return;
 
         CameraFollow cameraFollow = GetComponent<CameraFollow>();
-        if (cameraFollow != null) cameraFollow.InitializeCamera();
+
+        /// Initializing object camera interpolates to
+        // var camTarget = Instantiate(GameManager.Instance.Config.cameraTargetPrefab, gameObject.transform.position, Quaternion.identity);
+        // camTarget.GetComponent<CameraFollow>().InitializeCamera(gameObject);
+
+        if (cameraFollow != null) cameraFollow.InitializeCamera(gameObject);
 
         input = GetComponent<PlayerInput>();
 
