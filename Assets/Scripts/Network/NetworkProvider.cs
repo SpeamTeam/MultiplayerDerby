@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using Assets.Scripts.UI;
 using Assets.Scripts.InGameLogic;
+using Assets.Scripts.Network.Respawn;
 
 namespace Assets.Scripts.Network
 {
@@ -51,14 +52,100 @@ namespace Assets.Scripts.Network
 
     public void HandleCarDeath(CarHealth carHealth)
     {
-        if (GameManager.Instance.Config == null || !GameManager.Instance.Config.autoRespawn) return;
-        StartCoroutine(RespawnAfterDelay(carHealth.NetworkObjectId, GameManager.Instance.Config.respawnDelay));
+        if (!IsServer) return;
+        var cfg = GameManager.Instance.Config;
+        if (cfg == null || !cfg.autoRespawn) return;
+        StartCoroutine(RespawnSequence(carHealth.NetworkObjectId, cfg));
     }
 
-    private IEnumerator RespawnAfterDelay(ulong networkObjectId, float delay)
+    /// <summary>
+    /// Оркестрация кинематографического респавна КОНКРЕТНОЙ машины (по NetworkObjectId).
+    /// Раскадровка (общая шкала сервера и клиента, отсчёт от смерти):
+    ///   0–2с   камера на машине (клиент), 2–7с обзорные камеры (клиент),
+    ///   с 7с   дрон над целью начинает сброс ящика.
+    /// Сервер спавнит дрон в (droneDeliveryStartTime - droneTravelDuration), чтобы он
+    /// прибыл к цели ровно к началу фазы сброса. ServerRespawn машины вызывается ТОЛЬКО
+    /// после того, как ящик сброшен и растворён.
+    ///
+    /// Привязка строго по networkObjectId — одинаково корректно для игроков и ботов.
+    /// Если кинематик выключен или нет префаба дрона — работает старый путь через respawnDelay.
+    /// </summary>
+    private IEnumerator RespawnSequence(ulong networkObjectId, GameConfig cfg)
     {
-        yield return new WaitForSeconds(delay);
+        // --- Fallback: старое поведение через respawnDelay ---
+        if (!cfg.useCinematicRespawn || cfg.respawnDronePrefab == null)
+        {
+            yield return new WaitForSeconds(cfg.respawnDelay);
+            RespawnObject(networkObjectId);
+            yield break;
+        }
+
+        // Машина ещё должна существовать, чтобы узнать её будущую респавн-позу.
+        if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject carObj))
+        {
+            Debug.LogWarning($"[NetworkProvider] RespawnSequence: машина {networkObjectId} уже деспавнена — отмена кинематика.");
+            yield break;
+        }
+        CarAgent carAgent = carObj.GetComponent<CarAgent>();
+        if (carAgent == null)
+        {
+            // Не машина — на всякий случай ведём себя как раньше.
+            yield return new WaitForSeconds(cfg.respawnDelay);
+            RespawnObject(networkObjectId);
+            yield break;
+        }
+
+        carAgent.GetPlannedRespawnPose(out Vector3 respawnPos, out Quaternion respawnRot);
+        Vector3 overhead = respawnPos + Vector3.up * cfg.droneOverheadHeight;
+
+        // Спавним дрон так, чтобы он прибыл к overhead к droneDeliveryStartTime.
+        float spawnDelay = Mathf.Max(0f, cfg.droneDeliveryStartTime - cfg.droneTravelDuration);
+        yield return new WaitForSeconds(spawnDelay);
+
+        // Выбираем свободную точку спавна дрона (сервер).
+        Transform pad = DroneSpawnPointManager.Instance != null ? DroneSpawnPointManager.Instance.AcquirePoint() : null;
+        Vector3 arenaCenter = DroneSpawnPointManager.Instance != null ? DroneSpawnPointManager.Instance.ArenaCenter : Vector3.zero;
+        // Если свободных точек нет — стартуем сбоку-сверху от места респавна (кинематик не должен вставать колом).
+        Vector3 droneStart = pad != null
+            ? pad.position
+            : overhead + new Vector3(cfg.droneOverheadHeight, cfg.droneOverheadHeight * 0.5f, 0f);
+
+        // Спавн дрона (как SpawnProvider): Instantiate → NetworkObject.Spawn().
+        GameObject droneGo = Instantiate(cfg.respawnDronePrefab, droneStart, Quaternion.identity);
+        NetworkObject droneNo = droneGo.GetComponent<NetworkObject>();
+        if (droneNo == null)
+        {
+            Debug.LogError("[NetworkProvider] На префабе дрона нет NetworkObject — fallback на прямой респавн.");
+            Destroy(droneGo);
+            if (pad != null) DroneSpawnPointManager.Instance?.ReleasePoint(pad);
+            RespawnObject(networkObjectId);
+            yield break;
+        }
+        droneNo.Spawn();
+
+        RespawnDrone drone = droneGo.GetComponent<RespawnDrone>();
+        bool delivered = false;
+        drone.BeginDelivery(new RespawnDrone.DeliveryContext
+        {
+            startPos = droneStart,
+            overheadPos = overhead,
+            dropPos = respawnPos,
+            arenaCenter = arenaCenter,
+            travelDuration = cfg.droneTravelDuration,
+            cratePrefab = cfg.respawnCratePrefab,
+            crateFallSettleTime = cfg.crateFallSettleTime,
+            crateDissolveDuration = cfg.crateDissolveDuration,
+            onComplete = () => delivered = true
+        });
+
+        // Ждём, пока ящик доставлен и растворён.
+        yield return new WaitUntil(() => delivered);
+
+        // Только теперь — возрождаем именно эту машину (по её id).
         RespawnObject(networkObjectId);
+
+        // Освобождаем точку спавна дрона.
+        if (pad != null) DroneSpawnPointManager.Instance?.ReleasePoint(pad);
     }
 
 

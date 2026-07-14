@@ -156,6 +156,16 @@ public class CarAgent : NetworkBehaviour
         Debug.Log("SOME PLAYER RESPAWNED!");
     }
 
+    /// <summary>
+    /// Публичный доступ к будущей респавн-позе — нужен NetworkProvider'у на сервере,
+    /// чтобы дрон/ящик доставлялись ровно в ту точку, где появится машина.
+    /// Это только ЧТЕНИЕ выбранной точки, оно не занимает её и не меняет состояние.
+    /// </summary>
+    public void GetPlannedRespawnPose(out Vector3 position, out Quaternion rotation)
+    {
+        GetRespawnPose(out position, out rotation);
+    }
+
     private void GetRespawnPose(out Vector3 position, out Quaternion rotation)
     {
         var spawnPoints = SpawnPointsScript.Instance != null ? SpawnPointsScript.Instance.getSpawnPoints() : null;
