@@ -2,6 +2,7 @@ using System;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.Network
 {
@@ -81,8 +82,16 @@ namespace Assets.Scripts.Network
         public void Disconnect()
         {
             networkManager.Shutdown();
+            LoadMenu();
             Debug.Log("Disconnecting");
         }
+
+        private void LoadMenu()
+        {
+            var menuSceneName = gameConfig.menuSceneName;
+            SceneManager.LoadScene(menuSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        }
+
 
         // Action Handlers {//
         private void HandleClientConnected(ulong clientID)

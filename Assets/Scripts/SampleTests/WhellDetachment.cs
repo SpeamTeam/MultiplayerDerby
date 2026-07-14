@@ -149,6 +149,31 @@ namespace Assets.Scripts.AI
             return result;
         }
 
+        /// <summary>Возвращает все отпавшие колёса на место — вызывать при респавне.</summary>
+        public void ResetWheels()
+        {
+            if (wheels == null) return;
+
+            foreach (WheelData wheel in wheels)
+            {
+                if (wheel == null || !wheel.detached) continue;
+
+                wheel.detached = false;
+                wheel.accumulatedDeformation = 0f;
+
+                if (wheel.wheelMesh != null)
+                    wheel.wheelMesh.gameObject.SetActive(true);
+
+                if (wheel.wheelCollider != null)
+                {
+                    wheel.wheelCollider.gameObject.SetActive(true);
+                    wheel.wheelCollider.enabled = true;
+                    wheel.wheelCollider.motorTorque = 0f;
+                    wheel.wheelCollider.brakeTorque = 0f;
+                }
+            }
+        }
+
         private void DetachWheel(WheelData wheel)
         {
             if (wheel.detached) return;
