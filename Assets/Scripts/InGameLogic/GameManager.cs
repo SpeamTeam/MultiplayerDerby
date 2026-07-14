@@ -30,9 +30,10 @@ public class GameManager : MonoBehaviour
         // things we need on game start
         BootstrapCamera();
         BootstrapPauseMenu();
+        BootstrapScoreMenu();
     }
 
-
+    // Bootstrapping  methods {
     void BootstrapCamera()
     {
         Instantiate(Config.cameraPrefab);
@@ -44,6 +45,11 @@ public class GameManager : MonoBehaviour
         obj.SetActive(false);
     }
 
+    void BootstrapScoreMenu()
+    {
+        Instantiate(Config.scoreMenuPrefab);
+    }
+    // Bootstrapping methods }
 
     /// <summary>
     /// Спавнит бота на сервере в любой свободной точке спавна (та же логика, что у

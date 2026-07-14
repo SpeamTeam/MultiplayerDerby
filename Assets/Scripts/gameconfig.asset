@@ -20,3 +20,4 @@ MonoBehaviour:
   autoRespawn: 1
   respawnDelay: 10
   pauseMenuPrefab: {fileID: 6322885981564679035, guid: 8cc6bdc8fa1d4e34694d37a6b534cd74, type: 3}
+  scoreMenuPrefab: {fileID: -3140341658224006485, guid: 64dc7f5dfcffa9cadad3251ae145bbec, type: 3}

@@ -27,7 +27,6 @@ public class DebugHud : MonoBehaviour
         {
             if (health == null) continue;
 
-            var score = health.GetComponent<PlayerScore>();
             var eject = health.GetComponent<DriverEjection>();
             var rb = health.GetComponent<Rigidbody>();
             var agent = GetComponent<CarAgent>();

@@ -2,6 +2,7 @@ using Assets.Scripts.AI;
 using Assets.Scripts.Network;
 using Assets.Scripts.Network.Spawn;
 using Assets.Scripts.UI;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,7 +22,6 @@ using UnityEngine.InputSystem;
 /// НЕ планирует респавн сам — иначе он выполнялся бы независимо на каждом пире.
 /// </summary>
 [RequireComponent(typeof(CarHealth))]
-[RequireComponent(typeof(PlayerScore))]
 // [RequireComponent(typeof(DriverEjection))]
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerCarController))]
@@ -34,19 +34,17 @@ public class CarAgent : NetworkBehaviour
     [SerializeField] private Rigidbody rb;
 
     private CarHealth health;
-    private PlayerScore score;
     private PlayerInput input;
     private CarCollision carCollision; // может отсутствовать — деформация/отпадение колёс необязательны
     // private DriverEjection driverEjection;
 
-    // TODO: delete after debug hud become useless
     public WheelSetupScript wheelSetup;
 
+    public NetworkVariable<FixedString128Bytes> nickName = new NetworkVariable<FixedString128Bytes>();
 
     private void Awake()
     {
         health = GetComponent<CarHealth>();
-        score = GetComponent<PlayerScore>();
         carCollision = GetComponent<CarCollision>();
         // driverEjection = GetComponent<DriverEjection>(); // может отсутствовать — необязательный компонент
         if (rb == null) rb = GetComponent<Rigidbody>();
@@ -60,6 +58,13 @@ public class CarAgent : NetworkBehaviour
         // (см. CarHealth.Die → GameManager.HandleCarDeath → NetworkProvider.RespawnObject),
         // поэтому регистрация тут не критична для респавна, но семантика "playersList"
         // должна оставаться честной.
+        if (IsServer && nickName.Value.IsEmpty)
+        {
+            var substr = "Player_" + (OwnerClientId.ToString().Length >= 5 ? OwnerClientId.ToString()[..5] : OwnerClientId.ToString());
+            nickName.Value = substr.Length <= 20 ? substr : substr.Substring(0, 20);
+            Debug.Log($"Nick was empty so I chosed {nickName.Value}");
+        }
+
         if (IsServer && !IsBotControlled && NetworkProvider.Instance != null)
             NetworkProvider.Instance.RegisterPlayer(this);
     }
@@ -91,12 +96,14 @@ public class CarAgent : NetworkBehaviour
     {
         health.OnHealthChanged += HandleHealthChanged;
         health.OnDied += HandleDied;
+        health.OnRespawned += HandleRespawned;
     }
 
     private void OnDisable()
     {
         health.OnHealthChanged -= HandleHealthChanged;
         health.OnDied -= HandleDied;
+        health.OnRespawned -= HandleRespawned;
     }
 
     private void HandleHealthChanged(float current, float normalized)
@@ -105,28 +112,23 @@ public class CarAgent : NetworkBehaviour
         // делает детектор атакующего через RegisterDamageDealt.
     }
 
-    /// <summary>
-    /// Вызывается на машине АТАКУЮЩЕГО, когда она нанесла урон.
-    /// Детектор столкновений вызывает это на своей стороне.
-    /// </summary>
-    public void RegisterDamageDealt(float amount)
-    {
-        score.AddDamageScore(amount);
-    }
 
     private void HandleDied(CarHealth attacker)
     {
         // Отключаем управление и глушим машину. Респавн CarHealth закажет отдельно
         // (см. комментарий класса) — здесь его планировать больше не нужно.
         if (controller != null) controller.enabled = false;
+    }
 
-        // Начисляем килл атакующему (если это не самоуничтожение).
-        if (attacker != null && attacker != health)
-        {
-            var killerAgent = attacker.GetComponent<CarAgent>();
-            if (killerAgent != null)
-                killerAgent.score.AddKill();
-        }
+    // Симметрично HandleDied — срабатывает на КАЖДОМ пире (не только на сервере),
+    // т.к. без этого controller.enabled навсегда остаётся false на клиентах:
+    // ServerRespawn() выполняется только на сервере и его локальное
+    // "controller.enabled = true" до клиентов не доходит, а других обновлений
+    // компонента не было — визуальные NetworkVariable колёс переставали
+    // применяться, т.к. клиентский Update() (единственное место их чтения) не тикал.
+    private void HandleRespawned()
+    {
+        if (controller != null) controller.enabled = true;
     }
 
     /// <summary>
@@ -143,12 +145,10 @@ public class CarAgent : NetworkBehaviour
         rb.angularVelocity = Vector3.zero;
         transform.SetPositionAndRotation(spawnPos, spawnRot);
 
-        health.ResetState();
+        health.ResetState(); // это же вызовет HandleRespawned на всех пирах и включит controller
         // driverEjection?.ResetState();
-        score.OnRespawn(); // сбрасывает коэффициент за время жизни, totalScore не трогает
         carCollision?.ServerNotifyRespawn(); // откатывает деформацию меша и возвращает отпавшие колёса
 
-        if (controller != null) controller.enabled = true;
         Debug.Log("SOME PLAYER RESPAWNED!");
     }
 
@@ -188,12 +188,16 @@ public class CarAgent : NetworkBehaviour
         else
         {
             SetActiveInput(true);
-            pauseMenu.gameObject.SetActive(false);
+            pauseMenu.OnContinue();
         }
     }
     public void SetActiveInput(bool flag)
     {
-        if (input != null)
-            input.enabled = flag;
+        // if (input != null)
+        //     input.enabled = flag;
+        if (controller != null)
+        {
+            controller.enabled = flag;
+        }
     }
 }

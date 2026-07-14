@@ -51,6 +51,9 @@ namespace Assets.Scripts.Network.Spawn
                 Debug.LogWarning("No spawn points at scene");
             else
                 Debug.Log($"There're {spawnPoints.Count} at scene");
+
+            // NetworkObject netObj = null;
+
             foreach (var point in spawnPoints)
             {
                 if (!point.IsOccupied)
@@ -59,11 +62,11 @@ namespace Assets.Scripts.Network.Spawn
 
                     GameObject instance = Instantiate(playerPrefab, newPos, Quaternion.identity);
                     NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+                    // netObj = networkObject;
                     networkObject.SpawnAsPlayerObject(clientID);
                     spawnedPlayers.Add(clientID);
                     spawned = true;
                     Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
-                    Debug.Log(spawnedPlayers.ToArray().ToString());
                     break;
                 }
             }
@@ -72,12 +75,17 @@ namespace Assets.Scripts.Network.Spawn
                 Debug.Log("No free spawn points, so instantiating in (0,0,0)");
                 GameObject instance = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
                 NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+                // netObj = networkObject;
                 networkObject.SpawnAsPlayerObject(clientID);
                 spawnedPlayers.Add(clientID);
                 Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
                 Debug.Log(spawnedPlayers.ToArray().ToString());
             }
 
+            // if (netObj != null)
+            // {
+            //     NetworkProvider.Instance.RegisterPlayer(netObj.GetComponent<CarAgent>());
+            // }
         }
     }
 }

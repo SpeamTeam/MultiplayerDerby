@@ -12,6 +12,7 @@ namespace Assets.Scripts
         public GameObject playerPrefab;
         public GameObject botPrefab;
         public GameObject cameraPrefab;
+
         public string worldSceneName = "WorldScene";
         public string menuSceneName = "MenuScene";
 
@@ -22,6 +23,8 @@ namespace Assets.Scripts
         [Tooltip("Задержка (в секундах) между смертью и респавном")]
         public float respawnDelay = 3f;
 
+        [Header("Menus")]
         public GameObject pauseMenuPrefab;
+        public GameObject scoreMenuPrefab;
     }
 }

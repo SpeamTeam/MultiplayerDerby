@@ -47,14 +47,18 @@ public class CarHealth : NetworkBehaviour
 
     /// <summary>(текущее HP, нормализованное 0..1). Вызывается при любом изменении HP.</summary>
     public event Action<float, float> OnHealthChanged;
-    public static event Action<float, CarHealth> OnGettingDamage;
+    public event Action<float, CarHealth> OnGettingDamage;
 
     /// <summary>(атакующий — может быть null при падении/самоуроне). Вызывается один раз при смерти, на каждом пире.</summary>
     public event Action<CarHealth> OnDied;
 
+    /// <summary>Вызывается один раз при возрождении (netIsDead: true → false), на каждом пире.</summary>
+    public event Action OnRespawned;
+
     public override void OnNetworkSpawn()
     {
         netHealth.OnValueChanged += HandleNetHealthChanged;
+        netIsDead.OnValueChanged += HandleNetIsDeadChanged;
 
         if (IsServer)
         {
@@ -67,11 +71,20 @@ public class CarHealth : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         netHealth.OnValueChanged -= HandleNetHealthChanged;
+        netIsDead.OnValueChanged -= HandleNetIsDeadChanged;
     }
 
     private void HandleNetHealthChanged(float previous, float current)
     {
         OnHealthChanged?.Invoke(current, HealthNormalized);
+    }
+
+    private void HandleNetIsDeadChanged(bool previous, bool current)
+    {
+        // Смерть уже сообщается отдельно через NotifyDiedClientRpc (нужен attacker).
+        // Здесь нас интересует только обратный переход — возрождение.
+        if (previous && !current)
+            OnRespawned?.Invoke();
     }
 
     /// <summary>
@@ -85,12 +98,14 @@ public class CarHealth : NetworkBehaviour
         if (IsDead || IsInvulnerable || amount <= 0f) return;
 
         netHealth.Value = Mathf.Max(0f, netHealth.Value - amount);
-        OnGettingDamage?.Invoke(amount, attacker);
 
         if (netHealth.Value <= 0f)
             Die(attacker);
 
-        Debug.Log($"GOT DAMAGE! {amount}");
+        Debug.Log($"[CarHealth] got damage! {amount}");
+
+        OnGettingDamage?.Invoke(amount, attacker);
+        Debug.Log("[CarHealth] got damage and invoked action!");
     }
 
     /// <summary>Лечение / ремонт (пикапы и т.п.). Вызов с клиента игнорируется.</summary>
@@ -113,7 +128,7 @@ public class CarHealth : NetworkBehaviour
         // на сервере (см. IsServer-проверку в ApplyDamage), так что вызов ниже — тоже.
         if (NetworkProvider.Instance != null)
             NetworkProvider.Instance.HandleCarDeath(this);
-        Debug.Log("GODDAMN, I'M SO DEAD RN");
+        Debug.Log("[CarHealth] goddamn, i'm so dead rn");
     }
 
     [ContextMenu("Kill Myself")]

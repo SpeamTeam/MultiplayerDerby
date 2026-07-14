@@ -134,11 +134,10 @@ public class CarCollisionDetector : MonoBehaviour
         float actualDamage = before - otherHealth.CurrentHealth;
 
         // Очки атакующему за реально нанесённый урон.
-        if (actualDamage > 0f)
-        {
-            var myAgent = GetComponent<CarAgent>();
-            if (myAgent != null) myAgent.RegisterDamageDealt(actualDamage);
-        }
+        // if (actualDamage > 0f)
+        // {
+        //     var myAgent = GetComponent<CarAgent>();
+        // }
 
         if (logImpactsToConsole)
         {

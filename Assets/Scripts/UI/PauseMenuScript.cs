@@ -44,13 +44,16 @@ namespace Assets.Scripts.UI {
 
         public void OnSuicide()
         {
-            NetworkProvider.Instance.Respawn(NetworkManager.Singleton.LocalClientId);
+            NetworkProvider.Instance.RespawnServerRpc(NetworkManager.Singleton.LocalClientId);
         }
 
         public void OnContinue()
         {
-            MenuDeactivated?.Invoke(true);
             gameObject.SetActive(false);
+        }
+        private void OnDisable() 
+        { 
+            MenuDeactivated?.Invoke(true);
         }
     }
 }

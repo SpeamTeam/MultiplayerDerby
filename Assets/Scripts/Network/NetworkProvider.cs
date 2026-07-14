@@ -2,6 +2,8 @@ using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using Assets.Scripts.UI;
+using Assets.Scripts.InGameLogic;
 
 namespace Assets.Scripts.Network
 {
@@ -30,6 +32,7 @@ namespace Assets.Scripts.Network
         {
             if (!IsServer || agent == null || playersList.Contains(agent)) return;
             playersList.Add(agent);
+            ScoreManager.Instance?.RegisterPlayer(agent);
         }
 
         /// <summary>Снимает регистрацию (например, при отключении клиента). Вызывать только на сервере.</summary>
@@ -37,18 +40,15 @@ namespace Assets.Scripts.Network
         {
             if (!IsServer) return;
             playersList.Remove(agent);
+            ScoreManager.Instance?.UnregisterPlayer(agent);
         }
 
         public void RestartGame()
         {
             // TODO: Implement
         }
-    /// <summary>
-    /// Вызывается CarHealth (на сервере, IsServer уже проверен вызывающей стороной —
-    /// GameManager сам не NetworkBehaviour и авторитетность не проверяет) при смерти машины.
-    /// Читает задержку из GameConfig и поручает сам респавн NetworkProvider'у по
-    /// NetworkObjectId — не по OwnerClientId, т.к. у ботов его нет (см. NetworkProvider.RespawnObject).
-    /// </summary>
+
+
     public void HandleCarDeath(CarHealth carHealth)
     {
         if (GameManager.Instance.Config == null || !GameManager.Instance.Config.autoRespawn) return;
@@ -91,10 +91,10 @@ namespace Assets.Scripts.Network
         /// не путается с ботами, у которых OwnerClientId тоже может совпасть с сервером.
         /// Вызов с клиента игнорируется.
         /// </summary>
-        public void Respawn(ulong clientId)
-        {
-            if (!IsServer) return;
 
+        [ServerRpc(RequireOwnership = false)]
+        public void RespawnServerRpc(ulong clientId)
+        {
             if (!NetworkManager.ConnectedClients.TryGetValue(clientId, out var client) || client.PlayerObject == null)
             {
                 Debug.LogWarning($"[NetworkProvider] Respawn: клиент {clientId} не подключён или без машины.");

@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1137276162
+  GlobalObjectIdHash: 1824178143
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -110,14 +110,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7711718117008106635}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4be1fd9d0bb91684d884a9fd9c2f60c4, type: 3}
+  m_Script: {fileID: 11500000, guid: a2bd6a67a020b06459996e6b9f654b88, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerScore
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.InGameLogic.ScoreManager
+  ShowTopMostFoldoutHeaderGroup: 1
   pointsPerDamage: 1
   pointsPerKill: 250
-  basePointsPerTick: 2
-  survivalCoefficientGrowthPerSecond: 0.05
-  maxSurvivalCoefficient: 3
-  totalScore: 0
-  kills: 0
-  timeAliveThisLife: 0
+  tickInterval: 100
+  basePointsPerTick: 0
+  survivalCoefficientGrowthPerSecond: 0
+  maxSurvivalCoefficient: 0
