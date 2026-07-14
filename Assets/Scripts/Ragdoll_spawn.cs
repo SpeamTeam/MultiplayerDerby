@@ -1,7 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class Ragdoll_spawn : NetworkBehaviour
+public class Ragdoll_spawn : MonoBehaviour
 {
     [SerializeField] private CarAgent carAgent;
     GameObject playerObject;

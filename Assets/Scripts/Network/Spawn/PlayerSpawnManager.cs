@@ -63,9 +63,6 @@ namespace Assets.Scripts.Network.Spawn
                     NetworkObject networkObject = instance.GetComponent<NetworkObject>();
                     networkObject.SpawnAsPlayerObject(clientID);
                     spawnedPlayers.Add(clientID);
-                    GameObject RagDollInstance = Instantiate(RagDollPrefab,newPos + new Vector3(-0.25f,-0.473f, -0.038f),Quaternion.identity);
-                    RagDollInstance.GetComponent<NetworkObject>().Spawn();
-                    RagDollInstance.GetComponent<Ragdoll_spawn>().SetPlayerData(instance.GetComponent<CarAgent>());
                     spawned = true;
                     Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
                     Debug.Log(spawnedPlayers.ToArray().ToString());
