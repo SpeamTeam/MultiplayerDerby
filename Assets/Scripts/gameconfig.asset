@@ -15,8 +15,8 @@ MonoBehaviour:
   playerPrefab: {fileID: 8932994728899503279, guid: 816d7ca890fd8374281cf44f96c8007c, type: 3}
   botPrefab: {fileID: 8932994728899503279, guid: d9ec4b8f5e54d0d4ebdf81136d2bf6ba, type: 3}
   cameraPrefab: {fileID: 2847609266289519275, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
-  worldSceneName: SampleScene
+  worldSceneName: WorldScene
   menuSceneName: MenuScene
   autoRespawn: 1
-  respawnDelay: 3
+  respawnDelay: 10
   pauseMenuPrefab: {fileID: 6322885981564679035, guid: 8cc6bdc8fa1d4e34694d37a6b534cd74, type: 3}

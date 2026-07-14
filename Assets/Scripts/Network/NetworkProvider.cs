@@ -1,9 +1,13 @@
 using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Assets.Scripts.Network
 {
+    /// <summary>
+    /// Game manager for multiplayer
+    /// </summary>
     public class NetworkProvider : NetworkBehaviour
     {
         private readonly List<CarAgent> playersList = new List<CarAgent>();
@@ -39,6 +43,24 @@ namespace Assets.Scripts.Network
         {
             // TODO: Implement
         }
+    /// <summary>
+    /// Вызывается CarHealth (на сервере, IsServer уже проверен вызывающей стороной —
+    /// GameManager сам не NetworkBehaviour и авторитетность не проверяет) при смерти машины.
+    /// Читает задержку из GameConfig и поручает сам респавн NetworkProvider'у по
+    /// NetworkObjectId — не по OwnerClientId, т.к. у ботов его нет (см. NetworkProvider.RespawnObject).
+    /// </summary>
+    public void HandleCarDeath(CarHealth carHealth)
+    {
+        if (GameManager.Instance.Config == null || !GameManager.Instance.Config.autoRespawn) return;
+        StartCoroutine(RespawnAfterDelay(carHealth.NetworkObjectId, GameManager.Instance.Config.respawnDelay));
+    }
+
+    private IEnumerator RespawnAfterDelay(ulong networkObjectId, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        RespawnObject(networkObjectId);
+    }
+
 
         /// <summary>
         /// Респавн КОНКРЕТНОГО объекта по NetworkObjectId. Не зависит от OwnerClientId —

@@ -1,3 +1,4 @@
+using Assets.Scripts.Network;
 using System;
 using Unity.Netcode;
 using UnityEngine;
@@ -46,6 +47,7 @@ public class CarHealth : NetworkBehaviour
 
     /// <summary>(текущее HP, нормализованное 0..1). Вызывается при любом изменении HP.</summary>
     public event Action<float, float> OnHealthChanged;
+    public static event Action<float, CarHealth> OnGettingDamage;
 
     /// <summary>(атакующий — может быть null при падении/самоуроне). Вызывается один раз при смерти, на каждом пире.</summary>
     public event Action<CarHealth> OnDied;
@@ -83,6 +85,7 @@ public class CarHealth : NetworkBehaviour
         if (IsDead || IsInvulnerable || amount <= 0f) return;
 
         netHealth.Value = Mathf.Max(0f, netHealth.Value - amount);
+        OnGettingDamage?.Invoke(amount, attacker);
 
         if (netHealth.Value <= 0f)
             Die(attacker);
@@ -108,8 +111,8 @@ public class CarHealth : NetworkBehaviour
         // у GameManager (тот читает задержку/автореспавн из GameConfig и поручает сам
         // респавн NetworkProvider'у, server-authoritative). Die() выполняется только
         // на сервере (см. IsServer-проверку в ApplyDamage), так что вызов ниже — тоже.
-        if (GameManager.Instance != null)
-            GameManager.Instance.HandleCarDeath(this);
+        if (NetworkProvider.Instance != null)
+            NetworkProvider.Instance.HandleCarDeath(this);
         Debug.Log("GODDAMN, I'M SO DEAD RN");
     }
 
@@ -119,8 +122,8 @@ public class CarHealth : NetworkBehaviour
         if (netIsDead.Value) return;
         netIsDead.Value = true;
         NotifyDiedClientRpc(0);
-        if (GameManager.Instance != null)
-            GameManager.Instance.HandleCarDeath(this);
+        if (NetworkProvider.Instance != null)
+            NetworkProvider.Instance.HandleCarDeath(this);
     }
 
     [ClientRpc]

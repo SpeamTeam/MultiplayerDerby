@@ -7,6 +7,9 @@ using Assets.Scripts.Network.Spawn;
 using Unity.Netcode;
 using UnityEngine;
 
+/// <summary>
+/// Does things only for local player. Does not really affect the multiplayer and in-game interactions
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     static public GameManager Instance { get; private set; }
@@ -41,25 +44,6 @@ public class GameManager : MonoBehaviour
         obj.SetActive(false);
     }
 
-    /// <summary>
-    /// Вызывается CarHealth (на сервере, IsServer уже проверен вызывающей стороной —
-    /// GameManager сам не NetworkBehaviour и авторитетность не проверяет) при смерти машины.
-    /// Читает задержку из GameConfig и поручает сам респавн NetworkProvider'у по
-    /// NetworkObjectId — не по OwnerClientId, т.к. у ботов его нет (см. NetworkProvider.RespawnObject).
-    /// </summary>
-    public void HandleCarDeath(CarHealth carHealth)
-    {
-        if (Config == null || !Config.autoRespawn) return;
-        StartCoroutine(RespawnAfterDelay(carHealth.NetworkObjectId, Config.respawnDelay));
-    }
-
-    private IEnumerator RespawnAfterDelay(ulong networkObjectId, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (NetworkProvider.Instance != null)
-            NetworkProvider.Instance.RespawnObject(networkObjectId);
-    }
 
     /// <summary>
     /// Спавнит бота на сервере в любой свободной точке спавна (та же логика, что у
@@ -67,6 +51,7 @@ public class GameManager : MonoBehaviour
     /// Ставит боту фиксированную цель (другая точка спавна) — только чтобы было видно,
     /// что он вообще едет; полноценный выбор цели (ближайший игрок и т.п.) — отдельная задача.
     /// </summary>
+    // TODO: Remove this and make bots spawn via in-game interactions
     [ContextMenu("Spawn Bot")]
     public void SpawnBot()
     {

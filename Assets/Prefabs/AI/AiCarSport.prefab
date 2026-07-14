@@ -1019,7 +1019,6 @@ GameObject:
   - component: {fileID: -6418833470022641191}
   - component: {fileID: 3016440026682865028}
   - component: {fileID: -5039093915575437136}
-  - component: {fileID: 1693928508142922902}
   - component: {fileID: -3174844817805839089}
   - component: {fileID: 6511463182313215507}
   - component: {fileID: 6883463589842003334}
@@ -1262,19 +1261,6 @@ MonoBehaviour:
   UseRigidBodyForMotion: 1
   AutoUpdateKinematicState: 0
   AutoSetKinematicOnDespawn: 1
---- !u!114 &1693928508142922902
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8932994728899503279}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a9f2ea3787b38d4f8a795de7eb75141, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DebugHud
-  watchedCars: []
 --- !u!114 &-3174844817805839089
 MonoBehaviour:
   m_ObjectHideFlags: 0
