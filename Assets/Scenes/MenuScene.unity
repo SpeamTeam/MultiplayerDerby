@@ -1663,6 +1663,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ad7f37839ec0004d96d5ae825098384, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkHandler
+  gameConfig: {fileID: 11400000, guid: 1bd1be87d34859e419d1dde2fe7d5baa, type: 2}
   networkProviderPrefab: {fileID: 7711718117008106635, guid: a41bc877f77ee7146afaadaed4226ceb, type: 3}
   networkManager: {fileID: 0}
   unityTransport: {fileID: 0}
