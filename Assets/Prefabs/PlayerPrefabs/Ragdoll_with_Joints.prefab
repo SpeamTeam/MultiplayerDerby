@@ -464,7 +464,7 @@ GameObject:
   - component: {fileID: 6503680588290476526}
   - component: {fileID: 1574380730312885162}
   - component: {fileID: 8433030918906724290}
-  - component: {fileID: 4966415455151571603}
+  - component: {fileID: 3870838519099477441}
   m_Layer: 0
   m_Name: Ragdoll_with_Joints
   m_TagString: Untagged
@@ -543,7 +543,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1731410852
+  GlobalObjectIdHash: 2611536599
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -574,7 +574,7 @@ MonoBehaviour:
   Spinerb: {fileID: 3861992800333248090}
   HandJoint1: {fileID: 8552226252442119048}
   HandJoint2: {fileID: 8891315816639100591}
---- !u!114 &4966415455151571603
+--- !u!114 &3870838519099477441
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
