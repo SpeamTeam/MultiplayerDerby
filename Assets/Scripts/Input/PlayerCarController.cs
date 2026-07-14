@@ -6,10 +6,10 @@ using Unity.Netcode;
 public class PlayerCarController : NetworkBehaviour
 {
     [Header("Wheels Colliders")]
-    [SerializeField] private WheelCollider wheelFL;
-    [SerializeField] private WheelCollider wheelFR;
-    [SerializeField] private WheelCollider wheelRL;
-    [SerializeField] private WheelCollider wheelRR;
+    public WheelCollider wheelFL;
+    public WheelCollider wheelFR;
+    public WheelCollider wheelRL;
+    public WheelCollider wheelRR;
 
     [Header("Wheels Visuals (передние — раздельные)")]
     [SerializeField] private Transform visualFL;

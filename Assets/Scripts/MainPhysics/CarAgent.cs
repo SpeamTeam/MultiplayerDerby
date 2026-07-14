@@ -151,6 +151,10 @@ public class CarAgent : NetworkBehaviour
 
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
+
+        controller.wheelFL.motorTorque = 0f;
+        controller.wheelFR.motorTorque = 0f;
+
         transform.SetPositionAndRotation(spawnPos, spawnRot);
 
         health.ResetState(); // это же вызовет HandleRespawned на всех пирах и включит controller
