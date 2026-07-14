@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1404983766050666109}
   - component: {fileID: 2581158980976414701}
   - component: {fileID: 7888949422335021450}
+  - component: {fileID: 7888949422335021451}
   m_Layer: 0
   m_Name: CameraObject
   m_TagString: Untagged
@@ -276,6 +277,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CinemachineFind
   freeLookCamera: {fileID: 8320998283931187820}
+--- !u!114 &7888949422335021451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2847609266289519275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7c9a1b34d5f48260a1c2d3e4f5a6b71, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::CameraImpulseShake
+  gain: 1
+  dissipationDistance: 120
 --- !u!1 &7733544352717299698
 GameObject:
   m_ObjectHideFlags: 0

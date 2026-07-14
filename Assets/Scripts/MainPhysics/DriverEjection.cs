@@ -38,6 +38,9 @@ public class DriverEjection : MonoBehaviour
     [Tooltip("Срывать с места также при долгом перевороте (использует CarStabilizer)")]
     public bool ejectOnLongFlip = true;
 
+    [Tooltip("Слои, контакт с которыми НЕ срывает водителя (напр. взрывающиеся бочки на слое \"Barrel\"). Прямой таран такого объекта не должен «ломать» машину — урон/разрушение приходят отдельно, от взрыва. По умолчанию сюда автоматически добавляется слой \"Barrel\", если он есть в проекте.")]
+    public LayerMask nonEjectingLayers = 0;
+
     [Header("Сила отрыва")]
     public float ejectForceMultiplier = 0.06f;
     public float minEjectForce = 4f;
@@ -84,6 +87,13 @@ public class DriverEjection : MonoBehaviour
         stabilizer = GetComponent<CarStabilizer>();
         controller = GetComponent<PlayerCarController>();
 
+        // Слой бочек всегда игнорируем при выбросе водителя — прямой контакт с
+        // бочкой не должен ломать машину (урон приходит только от взрыва).
+        // Добавляем программно, чтобы не настраивать маску в каждом префабе машины.
+        int barrelLayer = LayerMask.NameToLayer("Barrel");
+        if (barrelLayer >= 0)
+            nonEjectingLayers.value |= (1 << barrelLayer);
+
         if (driverRoot == null)
         {
             Debug.LogWarning($"{name}: DriverEjection.driverRoot не назначен — водитель работать не будет.");
@@ -117,6 +127,11 @@ public class DriverEjection : MonoBehaviour
     {
         if (state != DriverState.Seated) return;
         if (carHealth != null && (carHealth.IsDead || carHealth.IsInvulnerable)) return;
+
+        // Контакт с «неломающим» слоем (бочки) не срывает водителя. Плюс подстраховка
+        // по компоненту на случай, если бочка окажется не на своём слое.
+        if ((nonEjectingLayers.value & (1 << collision.gameObject.layer)) != 0) return;
+        if (collision.gameObject.GetComponentInParent<ExplosiveBarrel>() != null) return;
 
         // Тот же фильтр, что и в CarCollisionDetector: вертикальный контакт
         // с землёй (кочка/бордюр) — не полноценный удар, водителя не срывает.
