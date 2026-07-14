@@ -1183,7 +1183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 656957996
+  GlobalObjectIdHash: 704096593
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1261,6 +1261,8 @@ MonoBehaviour:
   boostMultiplier: 2
   boostMaxSpeed: 35
   handbrakeTorque: 1000
+  brakeToReverseThreshold: 0.5
+  brakeForce: 4000
   steerSpeed: 10
   downforceAmount: 5
   droppedStiffness: 1

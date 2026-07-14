@@ -37,6 +37,12 @@ public class PlayerCarController : NetworkBehaviour
     [Header("Handbrake (Spacebar)")]
     [SerializeField] private float handbrakeTorque = 3000f;
 
+    [Header("Smart Brake / Reverse")]
+    [Tooltip("Порог скорости вдоль корпуса (м/с), выше которого противоположный ввод трактуется как торможение, а не реверс")]
+    [SerializeField] private float brakeToReverseThreshold = 0.5f;
+    [Tooltip("Сила торможения, когда ввод противоположен текущему направлению движения (например, жмём S на ходу вперёд)")]
+    [SerializeField] private float brakeForce = 4000f;
+
     [Header("Steering Smoothing")]
     [SerializeField] private float steerSpeed = 10f;
 
@@ -211,21 +217,48 @@ public class PlayerCarController : NetworkBehaviour
         if (isBoosting && rb.linearVelocity.magnitude < boostMaxSpeed)
             currentForce *= boostMultiplier;
 
-        wheelFL.motorTorque = moveInput * currentForce;
-        wheelFR.motorTorque = moveInput * currentForce;
+        // --- Умное торможение / реверс ---
+        // Скорость кузова вдоль его собственной оси "вперёд". Знак говорит,
+        // куда машина реально едет, независимо от того, что жмёт игрок.
+        float forwardSpeed = Vector3.Dot(rb.linearVelocity, transform.forward);
+
+        bool wantsForward = moveInput > 0.01f;
+        bool wantsReverse = moveInput < -0.01f;
+
+        // Ввод противоположен направлению движения и скорость ещё заметная —
+        // значит это "торможение с хода", а не реверс. Мотору тут делать нечего,
+        // тормозим передние (ведущие) колёса вместо того, чтобы крутить их назад.
+        bool brakingAgainstMotion =
+            (wantsReverse && forwardSpeed > brakeToReverseThreshold) ||
+            (wantsForward && forwardSpeed < -brakeToReverseThreshold);
+
+        float motorBrakeTorque = 0f;
+        float appliedMotorTorque = moveInput * currentForce;
+
+        if (brakingAgainstMotion)
+        {
+            motorBrakeTorque = Mathf.Abs(moveInput) * brakeForce;
+            appliedMotorTorque = 0f;
+        }
+
+        wheelFL.motorTorque = appliedMotorTorque;
+        wheelFR.motorTorque = appliedMotorTorque;
+        wheelFL.brakeTorque = motorBrakeTorque;
+        wheelFR.brakeTorque = motorBrakeTorque;
+        // --- конец умного торможения / реверса ---
 
         float brake = brakeHeld ? handbrakeTorque : 0f;
         wheelRL.brakeTorque = brake;
         wheelRR.brakeTorque = brake;
-        wheelFL.brakeTorque = 0f;
-        wheelFR.brakeTorque = 0f;
 
         if (brakeHeld && moveInput == 0f)
         {
             wheelRL.brakeTorque = slowdownOnReleaseSpeed;
             wheelRR.brakeTorque = slowdownOnReleaseSpeed;
-            wheelFL.brakeTorque = slowdownOnReleaseSpeed;
-            wheelFR.brakeTorque = slowdownOnReleaseSpeed;
+            // Передние колёса тормозим доп. "довеском" только если сами
+            // ещё не тормозят сильнее из-за логики выше.
+            wheelFL.brakeTorque = Mathf.Max(wheelFL.brakeTorque, slowdownOnReleaseSpeed);
+            wheelFR.brakeTorque = Mathf.Max(wheelFR.brakeTorque, slowdownOnReleaseSpeed);
         }
 
         ApplyStiffness(wheelRL, brakeHeld);
