@@ -8,6 +8,7 @@ namespace Assets.Scripts.Network.Spawn
     public class PlayerSpawnManager : NetworkBehaviour
     {
         private GameObject playerPrefab;
+        private GameObject RagDollPrefab;
 
         private List<ulong> spawnedPlayers;
 
@@ -17,6 +18,7 @@ namespace Assets.Scripts.Network.Spawn
 
             GameConfig gameConfig = GameManager.Instance.Config;
             playerPrefab = gameConfig.playerPrefab;
+            RagDollPrefab = gameConfig.RagDollPrefab;
 
             spawnedPlayers = new List<ulong>();
 
@@ -61,6 +63,9 @@ namespace Assets.Scripts.Network.Spawn
                     NetworkObject networkObject = instance.GetComponent<NetworkObject>();
                     networkObject.SpawnAsPlayerObject(clientID);
                     spawnedPlayers.Add(clientID);
+                    GameObject RagDollInstance = Instantiate(RagDollPrefab,newPos,Quaternion.identity);
+                    RagDollInstance.GetComponent<NetworkObject>().Spawn();
+                    RagDollInstance.GetComponent<Ragdoll_spawn>().SetPlayerData(instance.GetComponent<CarAgent>());
                     spawned = true;
                     Debug.Log($"New client with id: {clientID} spawned! From {gameObject}");
                     Debug.Log(spawnedPlayers.ToArray().ToString());

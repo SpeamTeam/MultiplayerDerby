@@ -31,7 +31,7 @@ public class CarAgent : NetworkBehaviour
 {
     [Header("Ссылки")]
     [SerializeField] private PlayerCarController controller;      // чтобы отключать управление при смерти
-    [SerializeField] private Rigidbody rb;
+    public Rigidbody rb;
 
     private CarHealth health;
     private PlayerScore score;
@@ -41,7 +41,8 @@ public class CarAgent : NetworkBehaviour
 
     // TODO: delete after debug hud become useless
     public WheelSetupScript wheelSetup;
-
+    public Rigidbody HandPos1;
+    public Rigidbody HandPos2;
 
     private void Awake()
     {

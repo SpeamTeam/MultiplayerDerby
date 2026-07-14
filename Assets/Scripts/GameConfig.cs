@@ -10,6 +10,7 @@ namespace Assets.Scripts
     public class GameConfig : ScriptableObject
     {
         public GameObject playerPrefab;
+        public GameObject RagDollPrefab;
         public GameObject botPrefab;
         public GameObject cameraPrefab;
         public string worldSceneName = "WorldScene";
