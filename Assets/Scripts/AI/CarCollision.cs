@@ -231,6 +231,46 @@ namespace Assets.Scripts.AI
             PlayImpactSound(force);
         }
 
+        /// <summary>
+        /// Вызывать из CarAgent.ServerRespawn() (на сервере) — откатывает деформацию
+        /// меша и возвращает отпавшие колёса. Деформация чисто локальная (см. Awake:
+        /// "нужна КАЖДОМУ инстансу"), поэтому сброс тоже должен произойти на КАЖДОМ
+        /// пире отдельно — отсюда ClientRpc, а не прямой вызов.
+        /// </summary>
+        public void ServerNotifyRespawn()
+        {
+            if (!IsServer) return;
+            ResetVisualsClientRpc();
+        }
+
+        [ClientRpc]
+        private void ResetVisualsClientRpc()
+        {
+            ResetDeformation();
+            wheelDetachment?.ResetWheels();
+        }
+
+        private void ResetDeformation()
+        {
+            if (deformableMeshes == null) return;
+
+            for (int m = 0; m < deformableMeshes.Length; m++)
+            {
+                if (deformableMeshes[m] == null || originalVerts == null || originalVerts[m] == null) continue;
+
+                Mesh mesh = deformableMeshes[m].mesh;
+                Vector3[] verts = (Vector3[])originalVerts[m].Clone();
+                deformedVerts[m] = verts;
+
+                mesh.vertices = verts;
+                RecalculateFlatNormals(mesh);
+                mesh.RecalculateBounds();
+
+                if (updateMeshColliders && linkedColliders != null && linkedColliders[m] != null)
+                    ApplyMeshToCollider(linkedColliders[m], mesh);
+            }
+        }
+
         private void DeformMeshes(Vector3 rootLocalPoint, float force)
         {
             if (deformableMeshes == null) return;

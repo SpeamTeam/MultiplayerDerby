@@ -5,7 +5,13 @@ using System.Collections.Generic;
 
 namespace Assets.Scripts.AI
 {
-    [RequireComponent(typeof(CarController))]
+    /// <summary>
+    /// СЕТЬ: PlayerCarController — NetworkBehaviour, физику двигает только сервер
+    /// (см. его собственный IsServer-гейт в FixedUpdate). Поэтому вся навигация/логика
+    /// бота тоже гоняется только на сервере — на клиентах машину ведёт NetworkTransform,
+    /// пересчитывать путь там незачем и вредно (лишняя нагрузка + расхождение с сервером).
+    /// </summary>
+    [RequireComponent(typeof(PlayerCarController))]
     public class CarNavMeshAgent : MonoBehaviour
     {
         [Header("Navigation")]
@@ -34,8 +40,10 @@ namespace Assets.Scripts.AI
         public bool showDebugGizmos = true;
 
         // Компоненты
-        private CarController carController;
+        private PlayerCarController carController;
         private NavMeshPath navMeshPath;
+
+        private bool IsServerControlled => carController != null && carController.IsServer;
 
         // Состояние навигации
         private Vector3[] pathCorners = new Vector3[0];
@@ -58,13 +66,16 @@ namespace Assets.Scripts.AI
 
         private void Awake()
         {
-            carController = GetComponent<CarController>();
+            carController = GetComponent<PlayerCarController>();
+            carController.ConfigureAsBot();
             navMeshPath = new NavMeshPath();
         }
 
         private void Start()
         {
             lastPosition = transform.position;
+
+            if (!IsServerControlled) return;
 
             if (target != null)
                 SetDestination(target.position);
@@ -74,6 +85,8 @@ namespace Assets.Scripts.AI
 
         private void Update()
         {
+            if (!IsServerControlled) return;
+
             if (target != null && target.hasChanged)
             {
                 target.hasChanged = false;
@@ -83,6 +96,8 @@ namespace Assets.Scripts.AI
 
         private void FixedUpdate()
         {
+            if (!IsServerControlled) return;
+
             if (isReversing)
             {
                 HandleReversing();
@@ -97,7 +112,9 @@ namespace Assets.Scripts.AI
                     StopCar();
             }
 
-            carController.SetInputs(motorInput, steerInput, brakeInput);
+            // Тормоз у PlayerCarController — булев ручник (не пропорциональная педаль
+            // как у старого CarController), поэтому переводим float в порог.
+            carController.SetBotInputs(motorInput, steerInput, brakeInput > 0.5f);
         }
 
         // ──────────────────────────────────────────────
@@ -178,7 +195,7 @@ namespace Assets.Scripts.AI
             {
                 reachedDestination = true;
                 StopCar();
-                Debug.Log("[CarNav] Цель достигнута!");
+                // Debug.Log("[CarNav] Цель достигнута!");
                 return;
             }
 
@@ -194,7 +211,7 @@ namespace Assets.Scripts.AI
             {
                 reachedDestination = true;
                 StopCar();
-                Debug.Log("[CarNav] Цель достигнута!");
+                // Debug.Log("[CarNav] Цель достигнута!");
                 return;
             }
 
@@ -317,7 +334,7 @@ namespace Assets.Scripts.AI
 
                 if (movedDistance < stuckThreshold && allowReversing)
                 {
-                    Debug.Log("[CarNav] Машина застряла! Начинаем задний ход...");
+                    // Debug.Log("[CarNav] Машина застряла! Начинаем задний ход...");
                     StartReversing();
                 }
 
@@ -351,7 +368,7 @@ namespace Assets.Scripts.AI
                 if (target != null)
                     SetDestination(target.position);
 
-                Debug.Log("[CarNav] Задний ход завершён, пересчитываем маршрут.");
+                // Debug.Log("[CarNav] Задний ход завершён, пересчитываем маршрут.");
             }
         }
 

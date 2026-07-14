@@ -10,8 +10,18 @@ namespace Assets.Scripts
     public class GameConfig : ScriptableObject
     {
         public GameObject playerPrefab;
-        public GameObject enemyPrefab;
+        public GameObject botPrefab;
         public GameObject cameraPrefab;
         public string worldSceneName = "WorldScene";
+        public string menuSceneName = "MenuScene";
+
+        [Header("Respawn")]
+        [Tooltip("Респавнить ли машину автоматически после смерти")]
+        public bool autoRespawn = true;
+
+        [Tooltip("Задержка (в секундах) между смертью и респавном")]
+        public float respawnDelay = 3f;
+
+        public GameObject pauseMenuPrefab;
     }
 }
