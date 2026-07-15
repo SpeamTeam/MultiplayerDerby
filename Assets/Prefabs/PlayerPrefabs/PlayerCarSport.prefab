@@ -1273,7 +1273,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CarAgent
   ShowTopMostFoldoutHeaderGroup: 1
   controller: {fileID: -6616988544582934443}
-  RagDollPrefab: {fileID: 1686312719010305821, guid: 858fbda9e59b8e842b18f7a438a21b27, type: 3}
+  RagDollPrefab: {fileID: 1686312719010305821, guid: 179bf0ba19de13f4ab80a93e8fde3463, type: 3}
   rb: {fileID: 9154793490558195710}
   wheelSetup: {fileID: 600297000132327531}
   nickName:

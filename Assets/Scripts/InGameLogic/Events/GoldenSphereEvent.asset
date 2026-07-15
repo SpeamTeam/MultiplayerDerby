@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00345131031d9554c9fd112770b5838b, type: 3}
+  m_Name: GoldenSphereEvent
+  m_EditorClassIdentifier: Assembly-CSharp::GoldenSphereEvent
+  goldenSpherePrefab: {fileID: 5038201238525655407, guid: 79ab1396713235f4aad904d6d86627bb, type: 3}
+  spawnAreaCenter: {x: 1584, y: 213, z: 383}
+  spawnAreaSize: 50
+  spawnHeight: 1
