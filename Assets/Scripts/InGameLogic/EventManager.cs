@@ -9,9 +9,12 @@ using UnityEngine;
 public class GameEventData
 {
     public string eventId;
-    [Range(0f, 1f)] public float chance = 0.1f; // шанс срабатывания за один тик проверки
-    public float duration = 15f;                // сколько длится ивент
-    public float cooldown = 30f;                // минимальная пауза после окончания перед новым роллом
+    [Range(0f, 1f)] public float chance = 0.1f;
+    public float duration = 15f;
+    public float cooldown = 30f;
+
+    // Ссылка на ScriptableObject, который реализует IGameEvent
+    public GameEventBehaviour behaviour;
 
     [NonSerialized] public bool isActive;
     [NonSerialized] public float cooldownTimer;
@@ -95,36 +98,28 @@ public class EventManager : NetworkBehaviour
 
         evt.isActive = false;
         evt.cooldownTimer = evt.cooldown;
-
+        evt.behaviour?.OnServerEnd(this);
         NotifyEventEndedClientRpc(evt.eventId);
         Debug.Log($"[Server] Событие завершено: {evt.eventId}");
     }
+    public Coroutine RunCoroutine(IEnumerator routine) => StartCoroutine(routine);
 
     private void ApplyServerSideEventLogic(GameEventData evt)
     {
-        // TODO: спавн мобов, баффы, изменение погоды и т.д.
-        switch (evt.eventId)
-        {
-            case "meteor_shower":
-                // ...
-                break;
-            case "double_loot":
-                // ...
-                break;
-        }
+        evt.behaviour?.OnServerStart(this);
     }
 
     [ClientRpc]
     private void NotifyEventStartedClientRpc(string eventId)
     {
-        Debug.Log($"[Client] Событие началось: {eventId}");
-        // тут включаешь VFX/UI на клиенте
+        var evt = events.Find(e => e.eventId == eventId);
+        evt?.behaviour?.OnClientStart(this);
     }
 
     [ClientRpc]
     private void NotifyEventEndedClientRpc(string eventId)
     {
-        Debug.Log($"[Client] Событие закончилось: {eventId}");
-        // выключаешь VFX/UI
+        var evt = events.Find(e => e.eventId == eventId);
+        evt?.behaviour?.OnClientEnd(this);
     }
 }

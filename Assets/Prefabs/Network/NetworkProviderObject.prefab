@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 3117829479806734981}
   - component: {fileID: 977136805125740530}
   - component: {fileID: 4772726390886677059}
+  - component: {fileID: 867515810479028755}
   m_Layer: 0
   m_Name: NetworkProviderObject
   m_TagString: Untagged
@@ -48,7 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1824178143
+  GlobalObjectIdHash: 1137276162
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -120,3 +121,28 @@ MonoBehaviour:
   basePointsPerTick: 0
   survivalCoefficientGrowthPerSecond: 0
   maxSurvivalCoefficient: 0
+--- !u!114 &867515810479028755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7711718117008106635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a315758eca430d4e8aafbdb7ac1ef97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EventManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  checkInterval: 10
+  events:
+  - eventId: FogReveal
+    chance: 1
+    duration: 25
+    cooldown: 0
+    behaviour: {fileID: 11400000, guid: be03cc6986497b04fa314543d9d8c890, type: 2}
+  - eventId: Barrels
+    chance: 0.1
+    duration: 15
+    cooldown: 0
+    behaviour: {fileID: 0}
