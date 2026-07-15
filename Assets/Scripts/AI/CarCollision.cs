@@ -218,6 +218,12 @@ namespace Assets.Scripts.AI
             PlayImpactEffectsClientRpc(localHitPoint, localHitNormal, force);
         }
 
+
+        public void DeformViaForce(Vector3 localHitPoint, Vector3 localHitNormal, float force)
+        {
+            PlayImpactEffectsClientRpc(localHitPoint, localHitNormal, force);
+        }
+
         [ClientRpc]
         private void PlayImpactEffectsClientRpc(Vector3 localPoint, Vector3 localNormal, float force)
         {

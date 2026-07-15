@@ -1,4 +1,6 @@
+using Assets.Scripts.AI;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
@@ -19,7 +21,7 @@ using UnityEngine;
 /// хосте детонация авторитетна на хосте, а HP реплицируется всем. Когда бочку
 /// будут переводить на server-authority, Explode() достаточно обернуть в IsServer.
 /// </summary>
-public class ExplosiveBarrel : MonoBehaviour
+public class ExplosiveBarrel : NetworkBehaviour
 {
     [Header("Здоровье")]
     public float maxHealth = 100f;
@@ -33,6 +35,10 @@ public class ExplosiveBarrel : MonoBehaviour
     public GameObject explosionEffect;
     [Tooltip("Радиус поражения взрыва (мировые единицы). Должен быть заметно больше самой бочки. Виден красной сферой-гизмо при выделении — удобно калибровать под масштаб арены.")]
     public float explosionRadius = 25f;
+
+    [Tooltip("Сила, с которой продавливается mesh автомобиля при взрыве")]
+    [SerializeField] private float maxExplosionDeformationForce = 5f;
+    
     [Tooltip("Сила разлёта. Применяется как VelocityChange, т.е. это ~прирост скорости (м/с) в эпицентре — одинаково подбрасывает и лёгкие, и тяжёлые машины.")]
     public float explosionForce = 18f;
     [Tooltip("Насколько сильно взрыв поддаёт машины ВВЕРХ (подброс). Больше = выше полёт.")]
@@ -101,14 +107,28 @@ public class ExplosiveBarrel : MonoBehaviour
         Invoke(nameof(Explode), delay);
     }
 
+    // [ClientRpc]
+    // private void InitExplosionParticlesClientRPC()
+    // {
+    //     if (explosionEffect != null)
+    //         Instantiate(explosionEffect, transform.position, Quaternion.identity);
+    //     else
+    //         Debug.LogWarning("[ExplosiveBarrel] There's no explosionEffect assigned");
+    // }
+
     void Explode()
     {
         if (exploded) return; // страховка: не взрываемся дважды
         exploded = true;
 
+        Debug.Log($"[Barrel] {gameObject.name} exploded at {transform.position}", this);
         // 1. Эффект
         if (explosionEffect != null)
+        {
             Instantiate(explosionEffect, transform.position, Quaternion.identity);
+        }
+        else
+            Debug.LogWarning("[ExplosiveBarrel] There's no explosionEffect assigned");
 
         // 2. Звук
         if (explosionSound != null)
@@ -151,6 +171,26 @@ public class ExplosiveBarrel : MonoBehaviour
                 // Лёгкий спад урона к краю радиуса: в эпицентре — полный, на границе — половина.
                 float falloff = Mathf.Lerp(1f, 0.5f, Mathf.Clamp01(dist / explosionRadius));
                 car.ApplyDamage(explosionDamage * falloff);
+
+                if (IsServer)
+                {
+                    var carCollision = car.GetComponent<CarCollision>();
+
+                    Vector3 closestPointOnCar = hit.ClosestPoint(transform.position);
+                    Vector3 dir = (closestPointOnCar - transform.position).normalized;
+                    float distance = Vector3.Distance(transform.position, closestPointOnCar);
+
+                    Ray ray = new Ray(transform.position, dir);
+                    if (hit.Raycast(ray, out RaycastHit rayHit, dist + 0.1f))
+                    {
+                        Vector3 worldNormal = rayHit.normal;
+
+                        Vector3 localPoint = car.transform.InverseTransformPoint(closestPointOnCar);
+                        Vector3 localNormal = car.transform.InverseTransformDirection(worldNormal);
+
+                        carCollision.DeformViaForce(localPoint, localNormal, maxExplosionDeformationForce / dist);
+                    }
+                }
             }
         }
 

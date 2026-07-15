@@ -13,10 +13,11 @@ GameObject:
   - component: {fileID: 7622320684845363402}
   - component: {fileID: 1768025331937434745}
   - component: {fileID: 6806818009468813390}
+  - component: {fileID: 3163983814658268261}
   - component: {fileID: 3677226378577102308}
   - component: {fileID: 4183209924715084210}
   m_Layer: 6
-  m_Name: Barrel (4)
+  m_Name: Barrel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -143,6 +144,32 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &3163983814658268261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4345116347164736295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2096752693
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &3677226378577102308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,11 +182,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b96f93471d02df4485654f318565fe7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExplosiveBarrel
+  ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 67
   minImpactForce: 5
   damageMultiplier: 2
-  explosionEffect: {fileID: 0}
+  explosionEffect: {fileID: 1121192042590650, guid: e1b08032bec16ba4eb1ae23cbd572664, type: 3}
   explosionRadius: 15
+  maxExplosionDeformationForce: 1
   explosionForce: 8
   upwardModifier: 2.5
   explosionDamage: 60
