@@ -1259,6 +1259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 957aa2a55b3e5f34a837cb4e8a1081db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
+  bindTimeout: 5
 --- !u!114 &-6418833470022641191
 MonoBehaviour:
   m_ObjectHideFlags: 0

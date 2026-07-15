@@ -1,5 +1,4 @@
 using Assets.Scripts.AI;
-using Assets.Scripts.MainPhysics;
 using Assets.Scripts.Network;
 using Assets.Scripts.Network.Lobby;
 using Assets.Scripts.Network.Spawn;
@@ -7,6 +6,7 @@ using Assets.Scripts.UI;
 using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -54,14 +54,21 @@ public class CarAgent : NetworkBehaviour
         health = GetComponent<CarHealth>();
         carCollision = GetComponent<CarCollision>();
         health.OnDied += DropRagdoll;
-        if (rb == null) rb = GetComponent<Rigidbody>();
+        if (rb == null) {
+
+            rb = GetComponent<Rigidbody>();
+            
+        }
         if (controller == null) controller = GetComponent<PlayerCarController>();
     }
     private void DropRagdoll(CarHealth useless)
     {
         GameObject RagDollInstance = Instantiate(RagDollPrefab, transform.position + new Vector3(-0.25f, -0.473f, -0.038f), Quaternion.identity);
     }
-
+    void UnStatic()
+    {
+        rb.isKinematic = false;
+    }
     public override void OnNetworkSpawn()
     {
         // Список только для настоящих игроков (таргетинг ботов, статистика и т.п.) —
@@ -69,7 +76,8 @@ public class CarAgent : NetworkBehaviour
         // (см. CarHealth.Die → GameManager.HandleCarDeath → NetworkProvider.RespawnObject),
         // поэтому регистрация тут не критична для респавна, но семантика "playersList"
         // должна оставаться честной.
-        
+        rb.isKinematic = true;
+        Invoke("UnStatic", 8);
         if (IsOwner && !string.IsNullOrEmpty(NetworkHandler.Instance.localPlayerName))
         {
             nickName.Value = NetworkHandler.Instance.localPlayerName;

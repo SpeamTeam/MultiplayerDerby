@@ -132,7 +132,7 @@ public class PlayerCarController : NetworkBehaviour
         // отключаем симуляцию, чтобы не было рассинхрона и лишней нагрузки.
         if (IsServer)
         {
-            rb.isKinematic = false;
+            //rb.isKinematic = false;
             rb.centerOfMass = centerOfMass;
         }
         else
