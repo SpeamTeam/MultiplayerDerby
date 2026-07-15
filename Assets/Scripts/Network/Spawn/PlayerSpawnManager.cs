@@ -108,6 +108,8 @@ namespace Assets.Scripts.Network.Spawn
             NetworkObject networkObject = instance.GetComponent<NetworkObject>();
             networkObject.SpawnAsPlayerObject(clientId);
 
+            AITargetManager.Instance.AddTarget(networkObject.gameObject);
+
             var carAgent = instance.GetComponent<CarAgent>();
             if (carAgent != null)
                 carAgent.nickName.Value = nickName;
@@ -120,6 +122,8 @@ namespace Assets.Scripts.Network.Spawn
             GameObject instance = Instantiate(botPrefab, pos, rot);
             NetworkObject networkObject = instance.GetComponent<NetworkObject>();
             networkObject.Spawn(); // без clientId => владелец сервер
+
+            AITargetManager.Instance.AddTarget(networkObject.gameObject);
 
             var navAgent = instance.GetComponent<CarNavMeshAgent>();
             if (navAgent != null)

@@ -159,6 +159,8 @@ namespace Assets.Scripts.AI
         {
             if (!IsServer) return;
             if (Time.time - lastHitTime < hitCooldown) return;
+            if (collision.gameObject.CompareTag("GoldenSphere")) return;
+
             //if (carController.IsDead) return;
 
             ContactPoint contact = collision.GetContact(0);

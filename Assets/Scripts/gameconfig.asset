@@ -18,7 +18,7 @@ MonoBehaviour:
   cameraPrefab: {fileID: 2847609266289519275, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
   cameraTargetPrefab: {fileID: 7937243594925676517, guid: 5834f1bad21bc7d478b7aa3454ea33bc, type: 3}
   distance: 0
-  worldSceneName: WorldScene
+  worldSceneName: WorldScene 2
   menuSceneName: MenuScene
   autoRespawn: 1
   respawnDelay: 7

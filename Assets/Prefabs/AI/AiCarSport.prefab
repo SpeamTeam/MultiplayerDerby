@@ -1143,6 +1143,7 @@ GameObject:
   - component: {fileID: 6883463589842003334}
   - component: {fileID: 2677692399549285653}
   - component: {fileID: 1396377281888575205}
+  - component: {fileID: 3290952915082800195}
   m_Layer: 3
   m_Name: AiCarSport
   m_TagString: Untagged
@@ -1286,6 +1287,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 957aa2a55b3e5f34a837cb4e8a1081db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
+  bindTimeout: 5
 --- !u!114 &-6418833470022641191
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1651,6 +1653,25 @@ MonoBehaviour:
   m_DefaultActionMap: 
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &3290952915082800195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8932994728899503279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35b493c8fe438664487deb20ca79bf1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.AI.BotTargeting
+  botController: {fileID: 6883463589842003334}
+  reevaluateInterval: 2.5
+  minChaseTime: 4
+  switchThreshold: 1.25
+  distanceWeight: 1
+  randomJitter: 0.3
+  maxUsefulDistance: 60
 --- !u!1001 &5840047470129773457
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -189,7 +189,15 @@ MonoBehaviour:
   sphereRenderer: {fileID: 3791998537512709430}
   normalColor: {r: 1, g: 0.83137256, b: 0, a: 1}
   blinkColor: {r: 1, g: 0, b: 0, a: 1}
+  explosionPrefab: {fileID: 1329845292236604, guid: 9bba9cf244c53c5439505dfc96fdd11c, type: 3}
+  cameraShakeForce: 5
   playerTag: Player
+  explosionRadius: 10
+  explosionForce: 18
+  upwardModifier: 2.5
+  explosionDamage: 50
+  explosionSound: {fileID: 0}
+  maxExplosionDeformationForce: 1
 --- !u!114 &3535747608358332694
 MonoBehaviour:
   m_ObjectHideFlags: 0
