@@ -1352,6 +1352,8 @@ MonoBehaviour:
   boostMultiplier: 2
   boostMaxSpeed: 35
   handbrakeTorque: 3000
+  brakeToReverseThreshold: 0.5
+  brakeForce: 4000
   steerSpeed: 10
   downforceAmount: 10
   droppedStiffness: 0.5
@@ -3011,6 +3013,8 @@ MonoBehaviour:
   boostMultiplier: 2
   boostMaxSpeed: 35
   handbrakeTorque: 3000
+  brakeToReverseThreshold: 0.5
+  brakeForce: 4000
   steerSpeed: 10
   downforceAmount: 10
   droppedStiffness: 0.5
@@ -3593,6 +3597,8 @@ MonoBehaviour:
   boostMultiplier: 2
   boostMaxSpeed: 35
   handbrakeTorque: 3000
+  brakeToReverseThreshold: 0.5
+  brakeForce: 4000
   steerSpeed: 10
   downforceAmount: 10
   droppedStiffness: 0.5
@@ -3808,7 +3814,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.8666666
+  m_VoxelSize: 0.62333333
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: 5c4ecf10001f8f24193404777d32aa0d, type: 2}
   m_BuildHeightMesh: 0
@@ -4873,7 +4879,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 398d6d1462a926c4fb332bf0033c80bd, type: 3}
+  m_Resource: {fileID: 8300000, guid: 132c1515ea005404fb6144c976c99ed6, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -4975,9 +4981,9 @@ MonoBehaviour:
   tempClip: {fileID: 0}
   simulatedSpeed: 0
   maxSpeed: 200
-  minPitch: 0.8
-  maxPitch: 2.5
-  minVolume: 0.3
+  minPitch: 0
+  maxPitch: 1
+  minVolume: 0
   maxVolume: 1
   smoothSpeed: 3
   isPlaying: 1
@@ -5194,6 +5200,8 @@ MonoBehaviour:
   boostMultiplier: 2
   boostMaxSpeed: 35
   handbrakeTorque: 3000
+  brakeToReverseThreshold: 0.5
+  brakeForce: 4000
   steerSpeed: 10
   downforceAmount: 10
   droppedStiffness: 0.5

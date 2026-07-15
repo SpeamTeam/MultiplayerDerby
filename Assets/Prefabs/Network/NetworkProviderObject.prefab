@@ -136,12 +136,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EventManager
   ShowTopMostFoldoutHeaderGroup: 1
-  checkInterval: 10
+  checkInterval: 1
   events:
   - eventId: FogReveal
-    chance: 0
+    chance: 1
     duration: 25
-    cooldown: 0
+    cooldown: 30
     behaviour: {fileID: 11400000, guid: be03cc6986497b04fa314543d9d8c890, type: 2}
   - eventId: Barrels
     chance: 0.1

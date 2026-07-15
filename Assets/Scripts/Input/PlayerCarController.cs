@@ -1,3 +1,4 @@
+//Добавь в этом коде определение того, дрифтит ли машина и, если дрифтит, то запускай звук дрифта
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
@@ -55,6 +56,24 @@ public class PlayerCarController : NetworkBehaviour
     [Tooltip("Множитель для перевода RPM WheelCollider'а в градусы/сек визуального вращения")]
     [SerializeField] private float rpmToDegreesPerSecond = 6f; // rpm * 6 = deg/sec
 
+    [Header("Engine Sound")]
+    [Tooltip("Аудиоклип двигателя (луп)")]
+    [SerializeField] private AudioClip engineSound;
+    [Tooltip("AudioSource, на котором будет проигрываться звук двигателя (если не задан — добавится автоматически)")]
+    [SerializeField] private AudioSource engineAudioSource;
+    [Tooltip("Насколько быстро pitch/volume догоняют целевое значение")]
+    [SerializeField] private float engineSoundSmoothSpeed = 4f;
+    [Tooltip("Обороты ведущих колёс (WheelCollider.rpm), при которых pitch/volume достигают максимума (1)")]
+    [SerializeField] private float maxWheelRpmForFullSound = 600f;
+    [Tooltip("Минимальный pitch (колёса стоят / rpm = 0)")]
+    [SerializeField] private float engineMinPitch = 0f;
+    [Tooltip("Максимальный pitch (при rpm >= maxWheelRpmForFullSound)")]
+    [SerializeField] private float engineMaxPitch = 1f;
+    [Tooltip("Минимальная громкость (rpm = 0)")]
+    [SerializeField] private float engineMinVolume = 0f;
+    [Tooltip("Максимальная громкость (при rpm >= maxWheelRpmForFullSound)")]
+    [SerializeField] private float engineMaxVolume = 1f;
+
     [Header("Player's Input node")]
     [SerializeField] private PlayerInput playerInput;
 
@@ -83,6 +102,10 @@ public class PlayerCarController : NetworkBehaviour
     private float visualSpinFront;
     private float visualSpinRear;
 
+    // Локальные сглаженные значения pitch/volume звука двигателя (на клиентах)
+    private float currentEnginePitch;
+    private float currentEngineVolume;
+
     // Помечается true через ConfigureAsBot() — у ботов (CarNavMeshAgent) нет владеющего
     // клиента с устройством ввода, но по умолчанию их NetworkObject всё равно принадлежит
     // серверу, так что на хосте IsOwner был бы true. Флаг не даёт подключить PlayerInput
@@ -97,6 +120,14 @@ public class PlayerCarController : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
         if (playerInput == null) playerInput = GetComponent<PlayerInput>();
+
+        if (engineAudioSource == null)
+            engineAudioSource = gameObject.AddComponent<AudioSource>();
+
+        engineAudioSource.clip = engineSound;
+        engineAudioSource.loop = true;
+        engineAudioSource.playOnAwake = false;
+        engineAudioSource.spatialBlend = 1f; // 3D-звук — актуально для чужих машин на клиенте
     }
 
     /// <summary>
@@ -143,12 +174,24 @@ public class PlayerCarController : NetworkBehaviour
             wheelRL.enabled = false;
             wheelRR.enabled = false;
         }
+
+        // Звук двигателя проигрывается на всех инстансах (включая сервер/хост),
+        // громкость/pitch читаются из синхронизированного RPM ведущих колёс.
+        if (engineSound != null && engineAudioSource != null && !engineAudioSource.isPlaying)
+        {
+            engineAudioSource.volume = engineMinVolume;
+            engineAudioSource.pitch = Mathf.Max(engineMinPitch, 0.01f); // pitch 0 фактически ставит звук на паузу
+            engineAudioSource.Play();
+        }
     }
 
     public override void OnNetworkDespawn()
     {
         if (IsOwner && !isBotControlled)
             playerInput.actions.Disable();
+
+        if (engineAudioSource != null)
+            engineAudioSource.Stop();
     }
 
     void Update()
@@ -157,6 +200,8 @@ public class PlayerCarController : NetworkBehaviour
         // Здесь только визуальное вращение/поворот колёс — на КАЖДОМ клиенте,
         // включая владельца, на основе синхронизированных значений с сервера.
         UpdateWheelVisualsFromNetwork(Time.deltaTime);
+
+        UpdateEngineSound(Time.deltaTime);
     }
 
     // Input Methods {
@@ -210,6 +255,7 @@ public class PlayerCarController : NetworkBehaviour
 
     void FixedUpdate()
     {
+
         // Вся физика — только на сервере.
         if (!IsServer) return;
 
@@ -305,5 +351,34 @@ public class PlayerCarController : NetworkBehaviour
         float target = flag ? droppedStiffness : 1f;
         sidewaysFriction.stiffness = Mathf.Lerp(sidewaysFriction.stiffness, target, Time.fixedDeltaTime);
         collider.sidewaysFriction = sidewaysFriction;
+    }
+
+    /// <summary>
+    /// Плавно подгоняет pitch и volume звука двигателя под текущие обороты ведущих
+    /// (передних) колёс, синхронизированные с сервера через netFrontRpm. Выполняется
+    /// на КАЖДОМ клиенте (и на сервере/хосте тоже), т.к. AudioSource — чисто аудио-
+    /// сущность и не участвует в физике.
+    /// </summary>
+    private void UpdateEngineSound(float deltaTime)
+    {
+        if (engineAudioSource == null || engineSound == null) return;
+
+        // Ведущие колёса — передние (см. FixedUpdate: motorTorque идёт на wheelFL/wheelFR),
+        // поэтому именно их rpm — лучший индикатор "оборотов двигателя".
+        float wheelRpm = Mathf.Abs(netFrontRpm.Value);
+        float intensity = maxWheelRpmForFullSound > 0f
+            ? Mathf.Clamp01(wheelRpm / maxWheelRpmForFullSound)
+            : 0f;
+
+        float targetPitch = Mathf.Lerp(engineMinPitch, engineMaxPitch, intensity);
+        float targetVolume = Mathf.Lerp(engineMinVolume, engineMaxVolume, intensity);
+
+        currentEnginePitch = Mathf.Lerp(currentEnginePitch, targetPitch, engineSoundSmoothSpeed * deltaTime);
+        currentEngineVolume = Mathf.Lerp(currentEngineVolume, targetVolume, engineSoundSmoothSpeed * deltaTime);
+
+        // pitch = 0 у Unity AudioSource фактически замораживает воспроизведение,
+        // поэтому подстраховываемся минимальным ненулевым значением.
+        engineAudioSource.pitch = Mathf.Max(currentEnginePitch, 0.01f);
+        engineAudioSource.volume = currentEngineVolume;
     }
 }
