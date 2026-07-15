@@ -72,10 +72,13 @@ namespace Assets.Scripts.Network
         {
             Debug.Log("Trying to make client");
 
+            localPlayerName = nickname;
+
             unityTransport.SetConnectionData(ip, port);
-            networkManager.NetworkConfig.ConnectionData = string.IsNullOrEmpty(nickname)
+            var newNick = string.IsNullOrEmpty(nickname)
                 ? Array.Empty<byte>()
                 : Encoding.UTF8.GetBytes(nickname);
+            networkManager.NetworkConfig.ConnectionData = newNick;
 
             if (networkManager.StartClient())
             {

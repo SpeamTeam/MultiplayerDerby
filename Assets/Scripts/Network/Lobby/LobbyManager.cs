@@ -31,6 +31,7 @@ namespace Assets.Scripts.Network.Lobby
         public readonly NetworkVariable<bool> GameStarted = new(
             writePerm: NetworkVariableWritePermission.Server);
 
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -166,6 +167,14 @@ namespace Assets.Scripts.Network.Lobby
                     break;
                 }
             }
+        }
+
+        public string GetNicknameFor(ulong clientId)
+        {
+            foreach( var slot in Slots) {
+               if (slot.ClientId == clientId) return slot.NickName.ToString(); 
+            }
+            return "";
         }
     }
 }
