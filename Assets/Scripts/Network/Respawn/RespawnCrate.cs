@@ -9,10 +9,11 @@ namespace Assets.Scripts.Network.Respawn
     ///
     /// СЕТЬ (server-authoritative):
     ///   • Спавн/деспавн и вся физика — ТОЛЬКО на сервере. Пока ящик «в руках» дрона,
-    ///     Rigidbody кинематический и позицию ведёт сервер (дрон каждый кадр ставит
-    ///     ящик под себя); NetworkTransform реплицирует это клиентам.
-    ///   • На сбросе (ServerDrop) сервер включает физику — ящик падает под гравитацией,
-    ///     падение реплицируется всем через NetworkTransform.
+    ///     он висит под ним на SpringJoint и инерционно раскачивается при полёте:
+    ///     Rigidbody на сервере НЕ кинематический, на клиентах кинематический —
+    ///     позицию им даёт NetworkTransform.
+    ///   • На сбросе (ServerDrop) сервер удаляет joint — ящик отцепляется и падает
+    ///     с текущей инерцией, падение реплицируется всем через NetworkTransform.
     ///   • Растворение (fade материала + сжатие + звук) запускается ClientRpc'ом, чтобы
     ///     исчезновение и звук были синхронны у ВСЕХ клиентов, включая хост. Сервер
     ///     параллельно отсчитывает ту же длительность и деспавнит ящик.
@@ -30,7 +31,21 @@ namespace Assets.Scripts.Network.Respawn
         [Tooltip("Рендереры ящика, которые нужно растворять. Если пусто — берутся все дочерние при спавне.")]
         [SerializeField] private Renderer[] renderers;
 
+        [Header("Подвес (SpringJoint)")]
+        [Tooltip("Жёсткость пружины. Больше — жёстче подвес и слабее раскачка.")]
+        [SerializeField] private float springForce = 200f;
+
+        [Tooltip("Затухание пружины. Больше — быстрее гаснет раскачка.")]
+        [SerializeField] private float springDamper = 8f;
+
+        [Tooltip("Длина «верёвки»: на этом расстоянии от точки подвеса пружина начинает тянуть вверх.")]
+        [SerializeField] private float maxDistance = 3f;
+
+        [Tooltip("Минимальное расстояние до точки подвеса, ближе которого пружина отталкивает.")]
+        [SerializeField] private float minDistance = 0f;
+
         private Rigidbody rb;
+        private SpringJoint joint;
         private bool dropped;
 
         // Готов к деспавну (растворение завершено) — читает дрон-владелец на сервере.
@@ -49,8 +64,12 @@ namespace Assets.Scripts.Network.Respawn
 
         public override void OnNetworkSpawn()
         {
-            // Пока не сброшен — висит под дроном, физику ведёт сервер вручную.
-            if (rb != null) rb.isKinematic = true;
+            if (rb == null) return;
+
+            if (IsServer)
+                rb.isKinematic = false;   // на сервере физика активна — ящик качается
+            else
+                rb.isKinematic = true;    // на клиентах позицию даёт NetworkTransform
         }
 
         /// <summary>Тайминги из конфига (задаёт дрон при спавне, только на сервере).</summary>
@@ -61,28 +80,42 @@ namespace Assets.Scripts.Network.Respawn
             dissolveDuration = crateDissolveDuration;
         }
 
-        /// <summary>Сервер: поставить ящик в позицию (пока его несёт дрон).</summary>
-        public void ServerFollow(Vector3 position, Quaternion rotation)
+        /// <summary>
+        /// Сервер: подвесить ящик под дрон на пружине. Вызывается один раз при спавне —
+        /// дальше положение ящика ведёт физика, а не покадровое позиционирование.
+        /// </summary>
+        /// <param name="droneRb">Rigidbody дрона — тело, к которому крепится подвес.</param>
+        /// <param name="anchorUnderDrone">Точка подвеса в ЛОКАЛЬНЫХ координатах дрона.</param>
+        public void ServerAttach(Rigidbody droneRb, Vector3 anchorUnderDrone)
         {
-            if (!IsServer || dropped) return;
-            transform.SetPositionAndRotation(position, rotation);
+            if (!IsServer || droneRb == null) return;
+
+            joint = gameObject.AddComponent<SpringJoint>();
+            joint.connectedBody = droneRb;
+            joint.autoConfigureConnectedAnchor = false;
+            joint.connectedAnchor = anchorUnderDrone;  // точка под дроном (локально к дрону)
+            joint.anchor = Vector3.zero;               // центр ящика
+            joint.spring = springForce;
+            joint.damper = springDamper;
+            joint.maxDistance = maxDistance;
+            joint.minDistance = minDistance;
         }
 
         /// <summary>
-        /// Сервер: сбросить ящик. Включает гравитацию — дальше падение authoritative на
-        /// сервере и реплицируется NetworkTransform'ом. Через settleTime запускает растворение.
+        /// Сервер: сбросить ящик. Удаляет подвес — ящик отцепляется и падает с той инерцией,
+        /// которую набрал на раскачке. Падение authoritative на сервере и реплицируется
+        /// NetworkTransform'ом. Через settleTime запускает растворение.
         /// </summary>
         public void ServerDrop()
         {
             if (!IsServer || dropped) return;
             dropped = true;
 
+            if (joint != null)
+                Destroy(joint);   // отцепляем от дрона — ящик падает свободно
+
             if (rb != null)
-            {
-                rb.isKinematic = false;
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
+                rb.useGravity = true;
 
             StartCoroutine(SettleThenDissolve());
         }
