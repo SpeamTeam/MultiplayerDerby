@@ -881,6 +881,8 @@ MonoBehaviour:
   explosionForce: 8
   upwardModifier: 2.5
   explosionDamage: 60
+  AudioObj: {fileID: 0}
+  explosionClip: {fileID: 0}
   explosionSound: {fileID: 0}
   cameraShakeForce: 5
   chainReactionDelay: 0.1
@@ -1906,6 +1908,8 @@ MonoBehaviour:
   explosionForce: 8
   upwardModifier: 2.5
   explosionDamage: 60
+  AudioObj: {fileID: 0}
+  explosionClip: {fileID: 0}
   explosionSound: {fileID: 0}
   cameraShakeForce: 5
   chainReactionDelay: 0.1
@@ -1958,6 +1962,69 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 6062268919102729100, guid: c20a00df917982d42bad7384a2ffa217, type: 3}
+--- !u!1 &497767320
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 497767323}
+  - component: {fileID: 497767322}
+  - component: {fileID: 497767321}
+  m_Layer: 0
+  m_Name: Global Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &497767321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497767320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ce76937bb4a38a458910cf0fa995ba6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GlobalVolumeProvider
+  globalVolume: {fileID: 497767322}
+--- !u!114 &497767322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497767320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 12760cd3b6e8d2e4fab6c83b732a698e, type: 2}
+--- !u!4 &497767323
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497767320}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1496.3761, y: 249.22186, z: 275.48352}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &558830833
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2923,6 +2990,8 @@ MonoBehaviour:
   explosionForce: 8
   upwardModifier: 2.5
   explosionDamage: 60
+  AudioObj: {fileID: 0}
+  explosionClip: {fileID: 0}
   explosionSound: {fileID: 0}
   cameraShakeForce: 5
   chainReactionDelay: 0.1
@@ -4866,6 +4935,8 @@ MonoBehaviour:
   explosionForce: 8
   upwardModifier: 2.5
   explosionDamage: 60
+  AudioObj: {fileID: 0}
+  explosionClip: {fileID: 0}
   explosionSound: {fileID: 0}
   cameraShakeForce: 5
   chainReactionDelay: 0.1
@@ -6463,6 +6534,8 @@ MonoBehaviour:
   explosionForce: 8
   upwardModifier: 2.5
   explosionDamage: 60
+  AudioObj: {fileID: 0}
+  explosionClip: {fileID: 0}
   explosionSound: {fileID: 0}
   cameraShakeForce: 5
   chainReactionDelay: 0.1
@@ -7456,3 +7529,4 @@ SceneRoots:
   - {fileID: 2049783472}
   - {fileID: 313043509}
   - {fileID: 1278511918}
+  - {fileID: 497767323}
