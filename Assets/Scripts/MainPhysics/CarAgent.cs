@@ -1,5 +1,4 @@
 using Assets.Scripts.AI;
-using Assets.Scripts.MainPhysics;
 using Assets.Scripts.Network;
 using Assets.Scripts.Network.Lobby;
 using Assets.Scripts.Network.Spawn;
