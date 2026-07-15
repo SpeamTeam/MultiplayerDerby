@@ -1,3 +1,4 @@
+using Assets.Scripts.InGameLogic;
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -125,11 +126,26 @@ public class GoldenSphereController : NetworkBehaviour
         HandlePlayerTouch(other);
     }
 
+
     private void HandlePlayerTouch(Collider other)
     {
-        if (!IsServer) return; // касание — авторитетная логика на сервере
-        if (!other.CompareTag(playerTag)) return;
+        if (!IsServer) return;
+        if (other.gameObject.layer != LayerMask.NameToLayer("Car")) return;
 
+        if (ScoreManager.Instance == null)
+        {
+            Debug.LogWarning("[GoldenSphere] ScoreManager.Instance is null!");
+            return;
+        }
+
+        var netObj = other.gameObject.GetComponentInParent<NetworkObject>();
+        if (netObj == null)
+        {
+            Debug.LogWarning($"[GoldenSphere] На объекте {other.name} нет NetworkObject!");
+            return;
+        }
+
+        ScoreManager.Instance.AddScoreServerRpc(netObj.NetworkObjectId, 20);
         Debug.Log($"[GoldenSphere] Игрок {other.name} коснулся Golden Sphere!");
     }
 }

@@ -256,8 +256,24 @@ namespace Assets.Scripts.InGameLogic
                 }
             }
         }
+        
+        public void AddScore(ulong networkObjectId, int amount, bool addKill = false)
+        {
+            if (!IsServer || (amount == 0 && !addKill)) return;
 
-        private void AddScore(ulong networkObjectId, int amount, bool addKill = false)
+            for (int i = 0; i < scores.Count; i++)
+            {
+                if (scores[i].NetworkObjectId != networkObjectId) continue;
+
+                var entry = scores[i];
+                entry.Score += amount;
+                if (addKill) entry.Kills++;
+                scores[i] = entry;
+                return;
+            }
+        }
+        [ServerRpc]
+        public void AddScoreServerRpc(ulong networkObjectId, int amount, bool addKill = false)
         {
             if (!IsServer || (amount == 0 && !addKill)) return;
 

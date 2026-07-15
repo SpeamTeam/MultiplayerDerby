@@ -9,7 +9,7 @@ public class GoldenSphereEvent : GameEventBehaviour
 
     [Header("Зона спавна")]
     [SerializeField] private Vector3 spawnAreaCenter = Vector3.zero;
-    [SerializeField] private Vector3 spawnAreaSize = new Vector3(20f, 0f, 20f);
+    [SerializeField] private int spawnAreaSize = 50;
     [SerializeField] private float spawnHeight = 1f;
 
     private NetworkObject _spawnedInstance;
@@ -23,10 +23,10 @@ public class GoldenSphereEvent : GameEventBehaviour
         }
 
         Vector3 randomOffset = new Vector3(
-            Random.Range(-spawnAreaSize.x / 2f, spawnAreaSize.x / 2f),
-            0f,
-            Random.Range(-spawnAreaSize.z / 2f, spawnAreaSize.z / 2f)
-        );
+    RandomSigned(20f, spawnAreaSize),
+    0f,
+    RandomSigned(20f, spawnAreaSize)
+);
 
         Vector3 spawnPos = spawnAreaCenter + randomOffset + Vector3.up * spawnHeight;
 
@@ -55,5 +55,11 @@ public class GoldenSphereEvent : GameEventBehaviour
             _spawnedInstance.Despawn(true);
         }
         _spawnedInstance = null;
+    }
+    float RandomSigned(float min, float max)
+    {
+        float value = Random.Range(min, max);
+        float sign = Random.value < 0.5f ? 1f : -1f;
+        return value * sign;
     }
 }

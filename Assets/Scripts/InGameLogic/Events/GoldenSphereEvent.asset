@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: GoldenSphereEvent
   m_EditorClassIdentifier: Assembly-CSharp::GoldenSphereEvent
   goldenSpherePrefab: {fileID: 5038201238525655407, guid: 79ab1396713235f4aad904d6d86627bb, type: 3}
-  spawnAreaCenter: {x: 1607, y: 223, z: 320}
-  spawnAreaSize: {x: 20, y: 0, z: 20}
+  spawnAreaCenter: {x: 1584, y: 213, z: 383}
+  spawnAreaSize: 50
   spawnHeight: 1
