@@ -54,6 +54,11 @@ namespace Assets.Scripts.Menu
             }
         }
 
+        public void OnExitGame()
+        {
+            Application.Quit();
+        }
+
         private string GetNickname()
         {
             return nickInputField != null ? nickInputField.text : null;

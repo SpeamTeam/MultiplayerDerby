@@ -72,6 +72,7 @@ namespace Assets.Scripts.InGameLogic
 
         [Tooltip("Потолок коэффициента — чтобы очень долгая жизнь не давала бесконечно растущие очки")]
         [SerializeField] private float maxSurvivalCoefficient = 3f;
+        private int lastBotIndex = 1;
 
         // Авторитативное реплицируемое табло. Пишет только сервер, читают все пиры.
         private readonly NetworkList<PlayerScoreEntry> scores = new(
@@ -188,13 +189,27 @@ namespace Assets.Scripts.InGameLogic
 
             serverPlayers[id] = state;
 
-            scores.Add(new PlayerScoreEntry
+            if (!agent.IsBotControlled)
             {
-                NetworkObjectId = id,
-                Name = LobbyManager.Instance.GetNicknameFor(agent.OwnerClientId),
-                Score = 0,
-                Kills = 0
-            });
+                scores.Add(new PlayerScoreEntry
+                {
+                    NetworkObjectId = id,
+                    Name = LobbyManager.Instance.GetNicknameFor(agent.OwnerClientId),
+                    Score = 0,
+                    Kills = 0
+                });
+            }
+            else
+            {
+                scores.Add(new PlayerScoreEntry
+                {
+                    NetworkObjectId = id,
+                    Name = "Bot_" + lastBotIndex,
+                    Score = 0,
+                    Kills = 0
+                });
+                lastBotIndex += 1;
+            }
         }
 
         public void UnregisterPlayer(CarAgent agent)
@@ -255,7 +270,7 @@ namespace Assets.Scripts.InGameLogic
                 }
             }
         }
-        
+
         public void AddScore(ulong networkObjectId, int amount, bool addKill = false)
         {
             if (!IsServer || (amount == 0 && !addKill)) return;

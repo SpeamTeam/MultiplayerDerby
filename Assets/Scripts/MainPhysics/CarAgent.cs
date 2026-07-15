@@ -29,7 +29,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerCarController))]
 [RequireComponent(typeof(CameraFollow))]
-[RequireComponent (typeof(PlayerInput))]
+[RequireComponent(typeof(PlayerInput))]
 public class CarAgent : NetworkBehaviour
 {
     [Header("Ссылки")]
@@ -54,10 +54,11 @@ public class CarAgent : NetworkBehaviour
         health = GetComponent<CarHealth>();
         carCollision = GetComponent<CarCollision>();
         health.OnDied += DropRagdoll;
-        if (rb == null) {
+        if (rb == null)
+        {
 
             rb = GetComponent<Rigidbody>();
-            
+
         }
         if (controller == null) controller = GetComponent<PlayerCarController>();
     }
@@ -103,7 +104,7 @@ public class CarAgent : NetworkBehaviour
 
         }
 
-        if (IsServer && !IsBotControlled && NetworkProvider.Instance != null)
+        if (IsServer && NetworkProvider.Instance != null)
             NetworkProvider.Instance.RegisterPlayer(this);
     }
 
@@ -128,7 +129,7 @@ public class CarAgent : NetworkBehaviour
         // на хосте прошёл бы IsOwner-проверку и увёл бы камеру/паузу с реального игрока.
         if (!IsOwner || IsBotControlled) return;
 
-        
+
         /// Initializing object camera interpolates to
         // var camTarget = Instantiate(GameManager.Instance.Config.cameraTargetPrefab, gameObject.transform.position, Quaternion.identity);
         // camTarget.GetComponent<CameraFollow>().InitializeCamera(gameObject);
