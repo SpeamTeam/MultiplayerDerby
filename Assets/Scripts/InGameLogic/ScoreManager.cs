@@ -1,3 +1,4 @@
+using Assets.Scripts.Network.Lobby;
 using Assets.Scripts.UI;
 using System;
 using System.Collections;
@@ -192,7 +193,7 @@ namespace Assets.Scripts.InGameLogic
             scores.Add(new PlayerScoreEntry
             {
                 NetworkObjectId = id,
-                Name = agent.nickName.Value,
+                Name = LobbyManager.Instance.GetNicknameFor(agent.OwnerClientId),
                 Score = 0,
                 Kills = 0
             });

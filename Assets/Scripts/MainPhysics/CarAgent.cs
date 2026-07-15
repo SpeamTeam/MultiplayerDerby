@@ -1,8 +1,10 @@
 using Assets.Scripts.AI;
 using Assets.Scripts.MainPhysics;
 using Assets.Scripts.Network;
+using Assets.Scripts.Network.Lobby;
 using Assets.Scripts.Network.Spawn;
 using Assets.Scripts.UI;
+using System.Collections;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -68,16 +70,29 @@ public class CarAgent : NetworkBehaviour
         // поэтому регистрация тут не критична для респавна, но семантика "playersList"
         // должна оставаться честной.
         
-        if (IsOwner)
+        if (IsOwner && !string.IsNullOrEmpty(NetworkHandler.Instance.localPlayerName))
         {
             nickName.Value = NetworkHandler.Instance.localPlayerName;
+            Debug.Log("[CarAgent] Player nick is set to \"" + NetworkHandler.Instance.localPlayerName + "\"");
         }
+        else if (string.IsNullOrEmpty(NetworkHandler.Instance.localPlayerName))
+            Debug.Log("[CarAgent] Player nick is empty");
 
         if (IsServer && nickName.Value.IsEmpty)
         {
-            var substr = "Player_" + (OwnerClientId.ToString().Length >= 5 ? OwnerClientId.ToString()[..5] : OwnerClientId.ToString());
-            nickName.Value = substr.Length <= 20 ? substr : substr.Substring(0, 20);
-            Debug.Log($"Nick was empty so I chosed {nickName.Value}");
+
+            var lobbyNick = LobbyManager.Instance?.GetNicknameFor(OwnerClientId);
+            if (lobbyNick != null)
+            {
+                nickName.Value = lobbyNick;
+            }
+            else
+            {
+                var substr = "Player_" + (OwnerClientId.ToString().Length >= 5 ? OwnerClientId.ToString()[..5] : OwnerClientId.ToString());
+                nickName.Value = substr.Length <= 20 ? substr : substr.Substring(0, 20);
+                Debug.Log($"Nick was empty so I chosed {nickName.Value}");
+            }
+
         }
 
         if (IsServer && !IsBotControlled && NetworkProvider.Instance != null)
@@ -109,6 +124,13 @@ public class CarAgent : NetworkBehaviour
 
         input = GetComponent<PlayerInput>();
 
+        StartCoroutine(SubscribePauseMenuInputActivation());
+    }
+
+    private IEnumerator SubscribePauseMenuInputActivation()
+    {
+        while (PauseMenuScript.Instance == null)
+            yield return null;
         PauseMenuScript.Instance.MenuDeactivated += SetActiveInput;
     }
 
