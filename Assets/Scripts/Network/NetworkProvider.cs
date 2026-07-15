@@ -80,11 +80,26 @@ namespace Assets.Scripts.Network
     private IEnumerator RespawnSequence(ulong networkObjectId, GameConfig cfg)
     {
         // --- Fallback: старое поведение через respawnDelay ---
-        if (!cfg.useCinematicRespawn || cfg.respawnDronePrefab == null)
+        // Условия разделены намеренно: без этого молчаливый выход отсюда неотличим от
+        // «дрон не работает», а в логе не остаётся ни следа причины.
+        if (!cfg.useCinematicRespawn)
         {
+            Debug.LogWarning("[NetworkProvider] Кинематик выключен (GameConfig.useCinematicRespawn = false) — респавн по respawnDelay.");
             yield return new WaitForSeconds(cfg.respawnDelay);
             RespawnObject(networkObjectId);
             yield break;
+        }
+        if (cfg.respawnDronePrefab == null)
+        {
+            Debug.LogWarning("[NetworkProvider] GameConfig.respawnDronePrefab не назначен — дрон не будет заспавнен, респавн по respawnDelay.");
+            yield return new WaitForSeconds(cfg.respawnDelay);
+            RespawnObject(networkObjectId);
+            yield break;
+        }
+        if (cfg.respawnCratePrefab == null)
+        {
+            // Не fallback: дрон долетит и без ящика, машина всё равно встанет в точку сброса.
+            Debug.LogWarning("[NetworkProvider] GameConfig.respawnCratePrefab не назначен — дрон полетит без ящика.");
         }
 
         // Машина ещё должна существовать, чтобы выбрать ветку высадки.
@@ -113,10 +128,19 @@ namespace Assets.Scripts.Network
         RespawnRouteManager.RespawnRoute route = null;
         try
         {
-            route = RespawnRouteManager.Instance != null ? RespawnRouteManager.Instance.AcquireRoute() : null;
+            // Две разные поломки — два разных сообщения: нет объекта в сцене против
+            // «объект есть, но маршруты в нём не заполнены».
+            if (RespawnRouteManager.Instance == null)
+            {
+                Debug.LogWarning("[NetworkProvider] RespawnRouteManager.Instance == null — объект не найден в WorldScene. Fallback на прямой респавн.");
+                RespawnObject(networkObjectId);
+                yield break;
+            }
+
+            route = RespawnRouteManager.Instance.AcquireRoute();
             if (route == null)
             {
-                Debug.LogWarning("[NetworkProvider] Нет настроенных маршрутов высадки — fallback на прямой респавн.");
+                Debug.LogWarning("[NetworkProvider] AcquireRoute вернул null — в RespawnRouteManager не настроено ни одного маршрута (нужны begin и end). Fallback на прямой респавн.");
                 RespawnObject(networkObjectId);
                 yield break;
             }

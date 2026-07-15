@@ -23,8 +23,8 @@ MonoBehaviour:
   autoRespawn: 1
   respawnDelay: 7
   useCinematicRespawn: 1
-  respawnDronePrefab: {fileID: 0}
-  respawnCratePrefab: {fileID: 0}
+  respawnDronePrefab: {fileID: 7408897286622075283, guid: ad879dea79f70644a9c494923e23a060, type: 3}
+  respawnCratePrefab: {fileID: 8119475672496651745, guid: 96df55b5a4b689848b33e822dea7f1e6, type: 3}
   droneDeliveryStartTime: 7
   droneTravelDuration: 5
   droneOverheadHeight: 35
