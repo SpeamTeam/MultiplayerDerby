@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 977136805125740530}
   - component: {fileID: 4772726390886677059}
   - component: {fileID: 867515810479028755}
+  - component: {fileID: 149775509270262711}
   m_Layer: 0
   m_Name: NetworkProviderObject
   m_TagString: Untagged
@@ -76,6 +77,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   ShowTopMostFoldoutHeaderGroup: 1
+  carSpawnHeightOffset: 0.5
 --- !u!114 &3117829479806734981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -151,3 +153,15 @@ MonoBehaviour:
     duration: 15
     cooldown: 0
     behaviour: {fileID: 11400000, guid: 3bcff47e14ea76044aa2c6b16a1b3750, type: 2}
+--- !u!114 &149775509270262711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7711718117008106635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d34398f82b4d634990f8838912b009c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'

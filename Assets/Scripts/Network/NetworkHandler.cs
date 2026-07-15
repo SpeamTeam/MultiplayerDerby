@@ -59,6 +59,8 @@ namespace Assets.Scripts.Network
 
             localPlayerName = nickname;
 
+            unityTransport.SetConnectionData("0.0.0.0", 6767, "0.0.0.0");
+
             if (networkManager.StartHost())
             {
                 Debug.Log("Hosted successfully");
@@ -82,7 +84,7 @@ namespace Assets.Scripts.Network
 
             if (networkManager.StartClient())
             {
-                Debug.Log("Made a client connection successfully");
+                Debug.Log($"Made a client connection successfully with {ip} : {port}");
             }
             else
             {
@@ -121,6 +123,8 @@ namespace Assets.Scripts.Network
 
         private void HandleConnectionApproval(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
         {
+            Debug.Log($"Connected client: {request.ClientNetworkId}");
+
             response.CreatePlayerObject = false;
 
             if (networkManager.IsHost && request.ClientNetworkId == networkManager.LocalClientId)
