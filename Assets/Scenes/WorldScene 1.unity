@@ -2272,6 +2272,8 @@ MonoBehaviour:
   - {fileID: 2078082781}
   - {fileID: 338085349}
   - {fileID: 1220093735}
+  isActive: 0
+  audioListener: {fileID: 0}
 --- !u!4 &1749289685
 Transform:
   m_ObjectHideFlags: 0
