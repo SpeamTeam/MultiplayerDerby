@@ -135,10 +135,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EventManager
   ShowTopMostFoldoutHeaderGroup: 1
-  checkInterval: 1
+  checkInterval: 10
   events:
   - eventId: FogReveal
-    chance: 1
+    chance: 0.05
     duration: 25
     cooldown: 30
     behaviour: {fileID: 11400000, guid: be03cc6986497b04fa314543d9d8c890, type: 2}
@@ -148,7 +148,7 @@ MonoBehaviour:
     cooldown: 0
     behaviour: {fileID: 0}
   - eventId: GoldenSphere
-    chance: 1
+    chance: 0.1
     duration: 15
     cooldown: 0
     behaviour: {fileID: 11400000, guid: 3bcff47e14ea76044aa2c6b16a1b3750, type: 2}

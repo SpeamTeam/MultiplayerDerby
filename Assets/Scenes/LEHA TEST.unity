@@ -1358,6 +1358,22 @@ MonoBehaviour:
   downforceAmount: 10
   droppedStiffness: 0.5
   rpmToDegreesPerSecond: 6
+  engineSound: {fileID: 0}
+  engineAudioSource: {fileID: 0}
+  engineSoundSmoothSpeed: 4
+  maxWheelRpmForFullSound: 600
+  engineMinPitch: 0
+  engineMaxPitch: 1
+  engineMinVolume: 0
+  engineMaxVolume: 1
+  driftSound: {fileID: 0}
+  driftAudioSource: {fileID: 0}
+  driftAngleThreshold: 15
+  driftMinSpeed: 3
+  driftSoundSmoothSpeed: 6
+  driftMinPitch: 0.8
+  driftMaxPitch: 1.2
+  driftMaxAngleForPitch: 60
   playerInput: {fileID: 0}
   centerOfMass: {x: 0, y: -0.3, z: 0}
 --- !u!114 &491250816
@@ -3019,6 +3035,22 @@ MonoBehaviour:
   downforceAmount: 10
   droppedStiffness: 0.5
   rpmToDegreesPerSecond: 6
+  engineSound: {fileID: 0}
+  engineAudioSource: {fileID: 0}
+  engineSoundSmoothSpeed: 4
+  maxWheelRpmForFullSound: 600
+  engineMinPitch: 0
+  engineMaxPitch: 1
+  engineMinVolume: 0
+  engineMaxVolume: 1
+  driftSound: {fileID: 0}
+  driftAudioSource: {fileID: 0}
+  driftAngleThreshold: 15
+  driftMinSpeed: 3
+  driftSoundSmoothSpeed: 6
+  driftMinPitch: 0.8
+  driftMaxPitch: 1.2
+  driftMaxAngleForPitch: 60
   playerInput: {fileID: 0}
   centerOfMass: {x: 0, y: -0.3, z: 0}
 --- !u!114 &963667846
@@ -3603,6 +3635,22 @@ MonoBehaviour:
   downforceAmount: 10
   droppedStiffness: 0.5
   rpmToDegreesPerSecond: 6
+  engineSound: {fileID: 0}
+  engineAudioSource: {fileID: 0}
+  engineSoundSmoothSpeed: 4
+  maxWheelRpmForFullSound: 600
+  engineMinPitch: 0
+  engineMaxPitch: 1
+  engineMinVolume: 0
+  engineMaxVolume: 1
+  driftSound: {fileID: 0}
+  driftAudioSource: {fileID: 0}
+  driftAngleThreshold: 15
+  driftMinSpeed: 3
+  driftSoundSmoothSpeed: 6
+  driftMinPitch: 0.8
+  driftMaxPitch: 1.2
+  driftMaxAngleForPitch: 60
   playerInput: {fileID: 0}
   centerOfMass: {x: 0, y: -0.3, z: 0}
 --- !u!114 &1077947418
@@ -4879,7 +4927,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 132c1515ea005404fb6144c976c99ed6, type: 3}
+  m_Resource: {fileID: 8300000, guid: c8ba73859103bf54d9f5629103dbc50c, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -5206,6 +5254,22 @@ MonoBehaviour:
   downforceAmount: 10
   droppedStiffness: 0.5
   rpmToDegreesPerSecond: 6
+  engineSound: {fileID: 0}
+  engineAudioSource: {fileID: 0}
+  engineSoundSmoothSpeed: 4
+  maxWheelRpmForFullSound: 600
+  engineMinPitch: 0
+  engineMaxPitch: 1
+  engineMinVolume: 0
+  engineMaxVolume: 1
+  driftSound: {fileID: 0}
+  driftAudioSource: {fileID: 0}
+  driftAngleThreshold: 15
+  driftMinSpeed: 3
+  driftSoundSmoothSpeed: 6
+  driftMinPitch: 0.8
+  driftMaxPitch: 1.2
+  driftMaxAngleForPitch: 60
   playerInput: {fileID: 0}
   centerOfMass: {x: 0, y: -0.3, z: 0}
 --- !u!114 &1419376217
