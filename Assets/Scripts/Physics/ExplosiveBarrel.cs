@@ -45,6 +45,8 @@ public class ExplosiveBarrel : NetworkBehaviour
     public float upwardModifier = 2.5f;
     [Tooltip("Урон машине в эпицентре. С расстоянием слегка спадает.")]
     public float explosionDamage = 50f;
+    [SerializeField] GameObject AudioObj;
+    public AudioSource explosionClip;
     public AudioClip explosionSound;
 
     [Header("Тряска камеры")]
@@ -63,6 +65,7 @@ public class ExplosiveBarrel : NetworkBehaviour
     void Start()
     {
         currentHealth = maxHealth;
+        
     }
 
     void OnCollisionEnter(Collision collision)
@@ -115,7 +118,10 @@ public class ExplosiveBarrel : NetworkBehaviour
     //     else
     //         Debug.LogWarning("[ExplosiveBarrel] There's no explosionEffect assigned");
     // }
-
+    [ClientRpc] void PlaySoundClientRpc()
+    {
+        Instantiate(AudioObj, transform.position,Quaternion.identity);
+    }
     void Explode()
     {
         if (exploded) return; // страховка: не взрываемся дважды
@@ -131,12 +137,11 @@ public class ExplosiveBarrel : NetworkBehaviour
             Debug.LogWarning("[ExplosiveBarrel] There's no explosionEffect assigned");
 
         // 2. Звук
-        if (explosionSound != null)
-            AudioSource.PlayClipAtPoint(explosionSound, transform.position);
+        if (explosionClip != null) PlaySoundClientRpc();
 
-        // 3. Тряска камеры (через Cinemachine Impulse — не конфликтует со слежением
-        //    камеры за машиной, см. CameraImpulseShake).
-        if (cameraShakeForce > 0f)
+            // 3. Тряска камеры (через Cinemachine Impulse — не конфликтует со слежением
+            //    камеры за машиной, см. CameraImpulseShake).
+            if (cameraShakeForce > 0f)
             CameraImpulseShake.ShakeAt(transform.position, cameraShakeForce);
 
         // 4. Раскидываем машины/объекты и раздаём урон машинам.
