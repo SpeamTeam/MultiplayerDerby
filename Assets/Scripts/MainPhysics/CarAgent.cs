@@ -42,7 +42,10 @@ public class CarAgent : NetworkBehaviour
 
     public WheelSetupScript wheelSetup;
 
-    public NetworkVariable<FixedString128Bytes> nickName = new NetworkVariable<FixedString128Bytes>();
+    public NetworkVariable<FixedString128Bytes> nickName = new NetworkVariable<FixedString128Bytes>(
+        readPerm: NetworkVariableReadPermission.Everyone,
+        writePerm: NetworkVariableWritePermission.Owner
+        );
 
     private void Awake()
     {
@@ -56,6 +59,7 @@ public class CarAgent : NetworkBehaviour
     {
         GameObject RagDollInstance = Instantiate(RagDollPrefab, transform.position + new Vector3(-0.25f, -0.473f, -0.038f), Quaternion.identity);
     }
+
     public override void OnNetworkSpawn()
     {
         // Список только для настоящих игроков (таргетинг ботов, статистика и т.п.) —
@@ -63,6 +67,12 @@ public class CarAgent : NetworkBehaviour
         // (см. CarHealth.Die → GameManager.HandleCarDeath → NetworkProvider.RespawnObject),
         // поэтому регистрация тут не критична для респавна, но семантика "playersList"
         // должна оставаться честной.
+        
+        if (IsOwner)
+        {
+            nickName.Value = NetworkHandler.Instance.localPlayerName;
+        }
+
         if (IsServer && nickName.Value.IsEmpty)
         {
             var substr = "Player_" + (OwnerClientId.ToString().Length >= 5 ? OwnerClientId.ToString()[..5] : OwnerClientId.ToString());
