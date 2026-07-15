@@ -18,9 +18,17 @@ MonoBehaviour:
   cameraPrefab: {fileID: 2847609266289519275, guid: 1b986cbd2ec542a4584c6159f65b2d61, type: 3}
   cameraTargetPrefab: {fileID: 7937243594925676517, guid: 5834f1bad21bc7d478b7aa3454ea33bc, type: 3}
   distance: 0
-  worldSceneName: WorldScene
+  worldSceneName: WorldScene 1
   menuSceneName: MenuScene
   autoRespawn: 1
   respawnDelay: 10
+  useCinematicRespawn: 1
+  respawnDronePrefab: {fileID: 0}
+  respawnCratePrefab: {fileID: 0}
+  droneDeliveryStartTime: 7
+  droneTravelDuration: 5
+  droneOverheadHeight: 35
+  crateFallSettleTime: 1.5
+  crateDissolveDuration: 1.5
   pauseMenuPrefab: {fileID: 6322885981564679035, guid: 8cc6bdc8fa1d4e34694d37a6b534cd74, type: 3}
   scoreMenuPrefab: {fileID: -3140341658224006485, guid: 64dc7f5dfcffa9cadad3251ae145bbec, type: 3}
