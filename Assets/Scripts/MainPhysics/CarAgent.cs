@@ -79,7 +79,13 @@ public class CarAgent : NetworkBehaviour
             NetworkProvider.Instance.UnregisterPlayer(this);
     }
 
-    private bool IsBotControlled => controller != null && controller.IsBotControlled;
+    /// <summary>
+    /// Машина под управлением бота (флаг ставит CarNavMeshAgent через ConfigureAsBot).
+    /// Единственный надёжный признак: по OwnerClientId бот и хост неразличимы — у ботов
+    /// владелец сервер, а на хосте это тот же ID, что и у машины самого игрока-хоста.
+    /// Нужен NetworkProvider'у, чтобы выбрать ветку высадки (ручная у игрока / авто у бота).
+    /// </summary>
+    public bool IsBotControlled => controller != null && controller.IsBotControlled;
 
     private void Start()
     {
@@ -141,14 +147,27 @@ public class CarAgent : NetworkBehaviour
     }
 
     /// <summary>
-    /// Фактически перемещает и оживляет машину. Авторитативно — вызывать
+    /// Респавн в плановую точку из SpawnPointsScript. Авторитативно — вызывать
     /// только на сервере (только NetworkProvider.Respawn должен его звать).
+    /// Этим путём идут fallback-ветки (кинематик выключен / нет префаба дрона) и Suicide;
+    /// при кинематике машина встаёт в точку падения ящика — см. ServerRespawnAt.
     /// </summary>
     public void ServerRespawn()
     {
         if (!IsServer) return;
 
         GetRespawnPose(out Vector3 spawnPos, out Quaternion spawnRot);
+        ServerRespawnAt(spawnPos, spawnRot);
+    }
+
+    /// <summary>
+    /// Фактически перемещает и оживляет машину в ЗАДАННОЙ позе. Авторитативно — только сервер.
+    /// Точку задаёт вызывающий: при кинематическом респавне это точка падения ящика,
+    /// которую дрон отдаёт NetworkProvider'у в onComplete.
+    /// </summary>
+    public void ServerRespawnAt(Vector3 position, Quaternion rotation)
+    {
+        if (!IsServer) return;
 
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
@@ -156,7 +175,7 @@ public class CarAgent : NetworkBehaviour
         controller.wheelFL.motorTorque = 0f;
         controller.wheelFR.motorTorque = 0f;
 
-        transform.SetPositionAndRotation(spawnPos, spawnRot);
+        transform.SetPositionAndRotation(position, rotation);
 
         health.ResetState(); // это же вызовет HandleRespawned на всех пирах и включит controller
         // driverEjection?.ResetState();

@@ -13,6 +13,9 @@ namespace Assets.Scripts.Network
     /// </summary>
     public class NetworkProvider : NetworkBehaviour
     {
+        [Tooltip("На сколько приподнять машину над точкой падения ящика при респавне, чтобы её коллайдер не влип в поверхность арены.")]
+        [SerializeField] private float carSpawnHeightOffset = 0.5f;
+
         private readonly List<CarAgent> playersList = new List<CarAgent>();
         public IReadOnlyList<CarAgent> PlayersList => playersList;
 
@@ -62,10 +65,14 @@ namespace Assets.Scripts.Network
     /// Оркестрация кинематографического респавна КОНКРЕТНОЙ машины (по NetworkObjectId).
     /// Раскадровка (общая шкала сервера и клиента, отсчёт от смерти):
     ///   0–2с   камера на машине (клиент), 2–7с обзорные камеры (клиент),
-    ///   с 7с   дрон над целью начинает сброс ящика.
-    /// Сервер спавнит дрон в (droneDeliveryStartTime - droneTravelDuration), чтобы он
-    /// прибыл к цели ровно к началу фазы сброса. ServerRespawn машины вызывается ТОЛЬКО
-    /// после того, как ящик сброшен и растворён.
+    ///   с droneDeliveryStartTime дрон входит на арену по маршруту и начинается высадка.
+    ///
+    /// Дрон спавнится в begin выбранного маршрута и летит к end, неся ящик:
+    ///   • машина игрока — открывается окно высадки, игрок роняет ящик по E (не успел до
+    ///     end — сервер роняет там автоматически);
+    ///   • машина бота — сервер роняет ящик на случайной доле маршрута.
+    /// ServerRespawn вызывается ТОЛЬКО после того, как ящик сброшен и растворён, и машина
+    /// встаёт в точку падения ящика (её возвращает дрон в onComplete).
     ///
     /// Привязка строго по networkObjectId — одинаково корректно для игроков и ботов.
     /// Если кинематик выключен или нет префаба дрона — работает старый путь через respawnDelay.
@@ -80,7 +87,7 @@ namespace Assets.Scripts.Network
             yield break;
         }
 
-        // Машина ещё должна существовать, чтобы узнать её будущую респавн-позу.
+        // Машина ещё должна существовать, чтобы выбрать ветку высадки.
         if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject carObj))
         {
             Debug.LogWarning($"[NetworkProvider] RespawnSequence: машина {networkObjectId} уже деспавнена — отмена кинематика.");
@@ -95,57 +102,95 @@ namespace Assets.Scripts.Network
             yield break;
         }
 
-        carAgent.GetPlannedRespawnPose(out Vector3 respawnPos, out Quaternion respawnRot);
-        Vector3 overhead = respawnPos + Vector3.up * cfg.droneOverheadHeight;
+        // Ветка высадки — по флагу бота, а НЕ по OwnerClientId: у ботов владелец сервер,
+        // а на хосте это тот же ID, что и у машины самого игрока-хоста.
+        bool manualDeploy = !carAgent.IsBotControlled;
+        ulong deployClientId = carObj.OwnerClientId;
 
-        // Спавним дрон так, чтобы он прибыл к overhead к droneDeliveryStartTime.
-        float spawnDelay = Mathf.Max(0f, cfg.droneDeliveryStartTime - cfg.droneTravelDuration);
-        yield return new WaitForSeconds(spawnDelay);
+        // Дрон вступает по раскадровке, после обзорных камер.
+        yield return new WaitForSeconds(Mathf.Max(0f, cfg.droneDeliveryStartTime));
 
-        // Выбираем свободную точку спавна дрона (сервер).
-        Transform pad = DroneSpawnPointManager.Instance != null ? DroneSpawnPointManager.Instance.AcquirePoint() : null;
-        Vector3 arenaCenter = DroneSpawnPointManager.Instance != null ? DroneSpawnPointManager.Instance.ArenaCenter : Vector3.zero;
-        // Если свободных точек нет — стартуем сбоку-сверху от места респавна (кинематик не должен вставать колом).
-        Vector3 droneStart = pad != null
-            ? pad.position
-            : overhead + new Vector3(cfg.droneOverheadHeight, cfg.droneOverheadHeight * 0.5f, 0f);
-
-        // Спавн дрона (как SpawnProvider): Instantiate → NetworkObject.Spawn().
-        GameObject droneGo = Instantiate(cfg.respawnDronePrefab, droneStart, Quaternion.identity);
-        NetworkObject droneNo = droneGo.GetComponent<NetworkObject>();
-        if (droneNo == null)
+        RespawnRouteManager.RespawnRoute route = null;
+        try
         {
-            Debug.LogError("[NetworkProvider] На префабе дрона нет NetworkObject — fallback на прямой респавн.");
-            Destroy(droneGo);
-            if (pad != null) DroneSpawnPointManager.Instance?.ReleasePoint(pad);
-            RespawnObject(networkObjectId);
-            yield break;
+            route = RespawnRouteManager.Instance != null ? RespawnRouteManager.Instance.AcquireRoute() : null;
+            if (route == null)
+            {
+                Debug.LogWarning("[NetworkProvider] Нет настроенных маршрутов высадки — fallback на прямой респавн.");
+                RespawnObject(networkObjectId);
+                yield break;
+            }
+
+            // Спавн дрона (как SpawnProvider): Instantiate → NetworkObject.Spawn().
+            GameObject droneGo = Instantiate(cfg.respawnDronePrefab, route.begin.position, Quaternion.identity);
+            NetworkObject droneNo = droneGo.GetComponent<NetworkObject>();
+            RespawnDrone drone = droneGo.GetComponent<RespawnDrone>();
+            if (droneNo == null || drone == null)
+            {
+                Debug.LogError("[NetworkProvider] На префабе дрона нет NetworkObject/RespawnDrone — fallback на прямой респавн.");
+                Destroy(droneGo);
+                RespawnObject(networkObjectId);
+                yield break;
+            }
+
+            // Владение отдаём клиенту только в ветке игрока: иначе его E некому прислать.
+            // Если клиент отвалился в момент смерти — SpawnWithOwnership кинет исключение,
+            // поэтому проверяем и молча уходим в автоматику.
+            if (manualDeploy && NetworkManager.ConnectedClients.ContainsKey(deployClientId))
+            {
+                droneNo.SpawnWithOwnership(deployClientId);
+            }
+            else
+            {
+                droneNo.Spawn();
+                manualDeploy = false;
+            }
+
+            Vector3? dropPoint = null;
+            bool delivered = false;
+            drone.BeginDelivery(new RespawnDrone.DeliveryContext
+            {
+                routeBegin = route.begin.position,
+                routeEnd = route.end.position,
+                arenaCenter = RespawnRouteManager.Instance.ArenaCenter,
+                manualDeploy = manualDeploy,
+                botDropFraction = Random.value,   // доля маршрута для бота, фиксируется на старте доставки
+                deployClientId = deployClientId,
+                cratePrefab = cfg.respawnCratePrefab,
+                crateFallSettleTime = cfg.crateFallSettleTime,
+                crateDissolveDuration = cfg.crateDissolveDuration,
+                onComplete = point => { dropPoint = point; delivered = true; }
+            });
+
+            // Ждём, пока ящик доставлен и растворён. Условие drone == null закрывает ожидание,
+            // если доставка сорвалась (дрон деспавнен) — иначе корутина висела бы вечно.
+            yield return new WaitUntil(() => delivered || drone == null);
+
+            // Только теперь — возрождаем именно эту машину (по её id), в точке падения ящика.
+            if (dropPoint.HasValue)
+                RespawnObjectAt(networkObjectId,
+                                dropPoint.Value + Vector3.up * carSpawnHeightOffset,
+                                RotationTowardsArenaCenter(dropPoint.Value));
+            else
+                RespawnObject(networkObjectId);   // проекция не удалась / доставка сорвалась
         }
-        droneNo.Spawn();
-
-        RespawnDrone drone = droneGo.GetComponent<RespawnDrone>();
-        bool delivered = false;
-        drone.BeginDelivery(new RespawnDrone.DeliveryContext
+        finally
         {
-            startPos = droneStart,
-            overheadPos = overhead,
-            dropPos = respawnPos,
-            arenaCenter = arenaCenter,
-            travelDuration = cfg.droneTravelDuration,
-            cratePrefab = cfg.respawnCratePrefab,
-            crateFallSettleTime = cfg.crateFallSettleTime,
-            crateDissolveDuration = cfg.crateDissolveDuration,
-            onComplete = () => delivered = true
-        });
+            // Маршрут освобождается в любом случае — в т.ч. если корутину остановили
+            // (StopCoroutine/деспавн), иначе занятые маршруты утекали бы навсегда.
+            RespawnRouteManager.Instance?.ReleaseRoute(route);
+        }
+    }
 
-        // Ждём, пока ящик доставлен и растворён.
-        yield return new WaitUntil(() => delivered);
-
-        // Только теперь — возрождаем именно эту машину (по её id).
-        RespawnObject(networkObjectId);
-
-        // Освобождаем точку спавна дрона.
-        if (pad != null) DroneSpawnPointManager.Instance?.ReleasePoint(pad);
+    /// <summary>Разворот машины на центр арены (в точке падения ящика опорной ротации нет).</summary>
+    private Quaternion RotationTowardsArenaCenter(Vector3 from)
+    {
+        Vector3 center = RespawnRouteManager.Instance != null ? RespawnRouteManager.Instance.ArenaCenter : Vector3.zero;
+        Vector3 flatDir = center - from;
+        flatDir.y = 0f;
+        return flatDir.sqrMagnitude > 0.0001f
+            ? Quaternion.LookRotation(flatDir.normalized, Vector3.up)
+            : Quaternion.identity;
     }
 
 
@@ -159,6 +204,21 @@ namespace Assets.Scripts.Network
         /// </summary>
         public void RespawnObject(ulong networkObjectId)
         {
+            RespawnObjectInternal(networkObjectId, null, null);
+        }
+
+        /// <summary>
+        /// То же самое, но в ЗАДАННУЮ позу — при кинематическом респавне это точка падения
+        /// ящика. Поиск объекта тот же (по NetworkObjectId), поэтому одинаково корректен
+        /// для игроков и ботов. Вызов с клиента игнорируется.
+        /// </summary>
+        public void RespawnObjectAt(ulong networkObjectId, Vector3 position, Quaternion rotation)
+        {
+            RespawnObjectInternal(networkObjectId, position, rotation);
+        }
+
+        private void RespawnObjectInternal(ulong networkObjectId, Vector3? position, Quaternion? rotation)
+        {
             if (!IsServer) return;
 
             if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject netObj))
@@ -168,8 +228,12 @@ namespace Assets.Scripts.Network
             }
 
             CarAgent agent = netObj.GetComponent<CarAgent>();
-            if (agent != null)
-                agent.ServerRespawn();
+            if (agent == null) return;
+
+            if (position.HasValue)
+                agent.ServerRespawnAt(position.Value, rotation ?? Quaternion.identity);
+            else
+                agent.ServerRespawn();   // плановая точка из SpawnPointsScript
         }
 
         /// <summary>

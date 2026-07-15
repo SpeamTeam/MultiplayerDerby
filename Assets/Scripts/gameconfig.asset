@@ -21,6 +21,14 @@ MonoBehaviour:
   worldSceneName: WorldScene
   menuSceneName: MenuScene
   autoRespawn: 1
-  respawnDelay: 10
+  respawnDelay: 7
+  useCinematicRespawn: 1
+  respawnDronePrefab: {fileID: 0}
+  respawnCratePrefab: {fileID: 0}
+  droneDeliveryStartTime: 7
+  droneTravelDuration: 5
+  droneOverheadHeight: 35
+  crateFallSettleTime: 1.5
+  crateDissolveDuration: 1.5
   pauseMenuPrefab: {fileID: 6322885981564679035, guid: 8cc6bdc8fa1d4e34694d37a6b534cd74, type: 3}
   scoreMenuPrefab: {fileID: -3140341658224006485, guid: 64dc7f5dfcffa9cadad3251ae145bbec, type: 3}

@@ -23,11 +23,13 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
-    }
 
-    private void Start()
-    {
-        // things we need on game start
+        // Бутстрап именно в Awake, а не в Start: на этих префабах живут CinemachineFind и
+        // PauseMenuScript, к которым тянется CarAgent.Start() локального игрока. Порядок
+        // Start() между разными объектами Unity не гарантирует, и машина, выигравшая гонку,
+        // получала NullReference (камера не привязывалась — игрока не было видно).
+        // Instantiate вызывает Awake создаваемого объекта синхронно, поэтому к первому
+        // Start() в сцене оба синглтона уже готовы.
         BootstrapCamera();
         BootstrapPauseMenu();
         BootstrapScoreMenu();

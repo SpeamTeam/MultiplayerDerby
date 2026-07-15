@@ -16,4 +16,11 @@ public class CinemachineFind : MonoBehaviour
         }
         Instance = this;
     }
+
+    // Без этого статик переживает выгрузку сцены и указывает на уничтоженный объект
+    // (WorldScene → MenuScene → WorldScene), а камера привязывается к трупу.
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 }
