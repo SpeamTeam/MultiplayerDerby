@@ -3311,6 +3311,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerCarSport
       objectReference: {fileID: 0}
+    - target: {fileID: 8932994728899503279, guid: 816d7ca890fd8374281cf44f96c8007c, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3702,6 +3706,8 @@ MonoBehaviour:
   - {fileID: 2078082781}
   - {fileID: 338085349}
   - {fileID: 1220093735}
+  isActive: 0
+  audioListener: {fileID: 1749289686}
 --- !u!4 &1749289685
 Transform:
   m_ObjectHideFlags: 0

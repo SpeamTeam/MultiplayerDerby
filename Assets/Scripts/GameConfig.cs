@@ -59,5 +59,15 @@ namespace Assets.Scripts
         [Header("Menus")]
         public GameObject pauseMenuPrefab;
         public GameObject scoreMenuPrefab;
+
+        [Header("Lobby")]
+        [Tooltip("Сколько слотов открыто по умолчанию при создании лобби")]
+        public int defaultMaxPlayers = 4;
+
+        [Tooltip("Минимально допустимое значение слайдера MaxPlayers")]
+        public int minPlayers = 1;
+
+        [Tooltip("Абсолютная ёмкость списка слотов (верхняя граница слайдера MaxPlayers)")]
+        public int lobbySlotCap = 8;
     }
 }

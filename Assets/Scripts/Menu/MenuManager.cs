@@ -10,6 +10,7 @@ namespace Assets.Scripts.Menu
     {
         [SerializeField] NetworkHandler networkHandler;
         [SerializeField] TMP_InputField ipPortInputField;
+        [SerializeField] TMP_InputField nickInputField;
 
         private void Start()
         {
@@ -18,7 +19,7 @@ namespace Assets.Scripts.Menu
 
         public void OnHostPressed()
         {
-            networkHandler.MakeHost();
+            networkHandler.MakeHost(GetNickname());
         }
         public void OnConnectPressed()
         {
@@ -41,7 +42,7 @@ namespace Assets.Scripts.Menu
                 }
 
 
-                networkHandler.MakeClient(ip, port);
+                networkHandler.MakeClient(ip, port, GetNickname());
             }
             catch (IndexOutOfRangeException)
             {
@@ -51,6 +52,11 @@ namespace Assets.Scripts.Menu
             {
                 Debug.LogWarning("Format error, can't parse string: " + e.Message);
             }
+        }
+
+        private string GetNickname()
+        {
+            return nickInputField != null ? nickInputField.text : null;
         }
     }
 }

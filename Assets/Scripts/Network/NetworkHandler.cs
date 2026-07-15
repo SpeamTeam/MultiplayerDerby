@@ -1,4 +1,6 @@
 using System;
+using System.Text;
+using Assets.Scripts.Network.Lobby;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -20,12 +22,12 @@ namespace Assets.Scripts.Network
 
         [Header("Have to be assigned")]
         [SerializeField] private GameObject networkProviderPrefab;
+        [SerializeField] private GameObject lobbyManagerPrefab;
 
         [Header("Don't have to be assigned")]
         [SerializeField] private NetworkManager networkManager;
         [SerializeField] private UnityTransport unityTransport;
 
-        // TODO: Add logic to that thing
         public string localPlayerName;
 
         private void Awake()
@@ -46,16 +48,52 @@ namespace Assets.Scripts.Network
             unityTransport = GetComponent<UnityTransport>();
 
             networkManager.OnServerStarted += SubscribeToSceneEvents;
+
+            networkManager.NetworkConfig.ConnectionApproval = true;
+            networkManager.ConnectionApprovalCallback = HandleConnectionApproval;
         }
 
-        public void MakeHost()
+        public void MakeHost(string nickname = null)
         {
             Debug.Log("Trying to make host");
 
+            localPlayerName = nickname;
+
             if (networkManager.StartHost())
-            { Debug.Log("Hosted successfully"); }
+            {
+                Debug.Log("Hosted successfully");
+                SpawnLobbyManager();
+            }
             else
             { Debug.LogWarning("Something went wrong on hosting"); }
+        }
+
+        public void MakeClient(string ip, ushort port, string nickname = null)
+        {
+            Debug.Log("Trying to make client");
+
+            unityTransport.SetConnectionData(ip, port);
+            networkManager.NetworkConfig.ConnectionData = string.IsNullOrEmpty(nickname)
+                ? Array.Empty<byte>()
+                : Encoding.UTF8.GetBytes(nickname);
+
+            if (networkManager.StartClient())
+            {
+                Debug.Log("Made a client connection successfully");
+            }
+            else
+            {
+                Debug.LogWarning("Something went wrong on clint initialization");
+            }
+        }
+
+        /// <summary>
+        /// Переход из лобби (MenuScene) в матч. Раньше вызывался инлайн внутри MakeHost сразу
+        /// после StartHost — теперь только по нажатию «Начать игру» в лобби, см. LobbyManager.TryStartGame.
+        /// </summary>
+        public void LoadWorldScene()
+        {
+            if (!networkManager.IsServer) return;
 
             worldSceneName = gameConfig.worldSceneName;
 
@@ -66,19 +104,38 @@ namespace Assets.Scripts.Network
             }
         }
 
-        public void MakeClient(string ip, ushort port)
+        private void SpawnLobbyManager()
         {
-            Debug.Log("Trying to make client");
+            GameObject instance = Instantiate(lobbyManagerPrefab, Vector3.zero, Quaternion.identity);
+            DontDestroyOnLoad(instance);
 
-            unityTransport.SetConnectionData(ip, port);
+            NetworkObject networkObject = instance.GetComponent<NetworkObject>();
+            // Лобби должно пережить LoadSceneMode.Single переход в WorldScene — иначе подключение
+            // новых игроков во время уже идущего матча (см. LobbyManager.TryReserveSlotFor) не с чем сверять.
+            networkObject.DestroyWithScene = false;
+            networkObject.Spawn();
+        }
 
-            if (networkManager.StartClient())
+        private void HandleConnectionApproval(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+        {
+            response.CreatePlayerObject = false;
+
+            if (networkManager.IsHost && request.ClientNetworkId == networkManager.LocalClientId)
             {
-                Debug.Log("Made a client connection successfully");
+                response.Approved = true;
+                return;
             }
-            else
+
+            string nickname = request.Payload != null && request.Payload.Length > 0
+                ? Encoding.UTF8.GetString(request.Payload)
+                : null;
+
+            bool reserved = LobbyManager.Instance != null && LobbyManager.Instance.TryReserveSlotFor(request.ClientNetworkId, nickname);
+
+            response.Approved = reserved;
+            if (!reserved)
             {
-                Debug.LogWarning("Something went wrong on clint initialization");
+                response.Reason = "Lobby is full";
             }
         }
 
