@@ -15,5 +15,6 @@ public class CinemachineFind : MonoBehaviour
             return;
         }
         Instance = this;
+        Debug.Log("[CinemachineFind] instance assigned");
     }
 }

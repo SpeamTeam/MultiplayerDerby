@@ -1,45 +1,54 @@
-﻿using Unity.Cinemachine;
+﻿using NUnit.Framework;
+using System.Collections;
+using Unity.Cinemachine;
 using UnityEngine;
 
-public class CameraFollow : MonoBehaviour
+namespace Assets.Scripts.MainPhysics
 {
-
-    // [Header("Settings")]
-    // [SerializeField] private float positionSmooth = 10f;
-    // [SerializeField] private float rotationSmooth = 3f;
-
-    // private GameObject playerObject;
-
-    private CinemachineCamera freeCamera;
-    private CinemachineOrbitalFollow orbitalFollow;
-
-    public void InitializeCamera(GameObject player)
+    public class CameraFollow : MonoBehaviour
     {
-    //     playerObject = player;
 
-        Debug.Log("[CameraFollow] " + CinemachineFind.Instance != null ? "cinemachine found" : "cinemachine not found");
-        var config = GameManager.Instance.Config;
+        // [Header("Settings")]
+        // [SerializeField] private float positionSmooth = 10f;
+        // [SerializeField] private float rotationSmooth = 3f;
 
-        freeCamera = CinemachineFind.Instance.freeLookCamera;
-        orbitalFollow = freeCamera.GetComponent<CinemachineOrbitalFollow>();
+        // private GameObject playerObject;
 
-        freeCamera.Target.TrackingTarget = gameObject.transform;
+        private CinemachineCamera freeCamera;
+        private CinemachineOrbitalFollow orbitalFollow;
 
-        orbitalFollow.RadialAxis.Value = config.distance;
+        public void InitializeCamera(GameObject player)
+        {
+            StartCoroutine(InitializeCameraWhenReady(player));
+        }
+        private IEnumerator InitializeCameraWhenReady(GameObject player)
+        {
+            // ждём, пока синглтон реально появится 
+            while (CinemachineFind.Instance == null)
+                yield return null;
 
-    }
+            var instance = CinemachineFind.Instance;
+            var config = GameManager.Instance.Config;
 
-    // private void LateUpdate()
-    // {
-    //     if (playerObject == null) return;
+            freeCamera = instance.freeLookCamera;
+            orbitalFollow = freeCamera.GetComponent<CinemachineOrbitalFollow>();
 
-    //     transform.SetPositionAndRotation(
-    //         Vector3.Lerp(transform.position, playerObject.transform.position, positionSmooth * Time.deltaTime),
-    //         Quaternion.Lerp(transform.rotation, playerObject.transform.rotation, rotationSmooth * Time.deltaTime)
-    //     );
-    // }
+            freeCamera.Target.TrackingTarget = transform;
+            orbitalFollow.RadialAxis.Value = config.distance;
+        }
 
-    private void LateUpdate()
-    {
+        // private void LateUpdate()
+        // {
+        //     if (playerObject == null) return;
+
+        //     transform.SetPositionAndRotation(
+        //         Vector3.Lerp(transform.position, playerObject.transform.position, positionSmooth * Time.deltaTime),
+        //         Quaternion.Lerp(transform.rotation, playerObject.transform.rotation, rotationSmooth * Time.deltaTime)
+        //     );
+        // }
+
+        private void LateUpdate()
+        {
+        }
     }
 }

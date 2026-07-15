@@ -1,4 +1,5 @@
 using Assets.Scripts.AI;
+using Assets.Scripts.MainPhysics;
 using Assets.Scripts.Network;
 using Assets.Scripts.Network.Spawn;
 using Assets.Scripts.UI;
@@ -26,7 +27,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerCarController))]
 [RequireComponent(typeof(CameraFollow))]
-// [RequireComponent (typeof(PlayerInput))]
+[RequireComponent (typeof(PlayerInput))]
 public class CarAgent : NetworkBehaviour
 {
     [Header("Ссылки")]
@@ -88,13 +89,13 @@ public class CarAgent : NetworkBehaviour
         // на хосте прошёл бы IsOwner-проверку и увёл бы камеру/паузу с реального игрока.
         if (!IsOwner || IsBotControlled) return;
 
-        CameraFollow cameraFollow = GetComponent<CameraFollow>();
-
+        
         /// Initializing object camera interpolates to
         // var camTarget = Instantiate(GameManager.Instance.Config.cameraTargetPrefab, gameObject.transform.position, Quaternion.identity);
         // camTarget.GetComponent<CameraFollow>().InitializeCamera(gameObject);
 
-        if (cameraFollow != null) cameraFollow.InitializeCamera(gameObject);
+        if (TryGetComponent<CameraFollow>(out var cameraFollow)) cameraFollow.InitializeCamera(gameObject);
+        else Debug.LogWarning("[CarAgent] No CameraFollow script?!");
 
         input = GetComponent<PlayerInput>();
 
