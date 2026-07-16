@@ -1,8 +1,11 @@
+using Assets.Scripts.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using TMPro;
+using UnityEngine.SocialPlatforms.Impl;
 
 // Описание одного случайного ивента
 [Serializable]
@@ -16,6 +19,7 @@ public class GameEventData
     // Ссылка на ScriptableObject, который реализует IGameEvent
     public GameEventBehaviour behaviour;
 
+
     [NonSerialized] public bool isActive;
     [NonSerialized] public float cooldownTimer;
 }
@@ -23,6 +27,8 @@ public class GameEventData
 public class EventManager : NetworkBehaviour
 {
     public static EventManager Instance { get; private set; }
+    private Coroutine countdownCoroutine;
+    private TextMeshProUGUI timerText;
 
     [SerializeField] private float checkInterval = 10f;
     [SerializeField] private List<GameEventData> events = new List<GameEventData>();
@@ -39,10 +45,23 @@ public class EventManager : NetworkBehaviour
         }
         Instance = this;
     }
+    [ClientRpc]
+    void GetTimerClientRpc()
+    {
+        GameObject CurTimer = ScoreBoardUI.Instance.gameObject.transform.Find("Timer").gameObject;
+        CurTimer.SetActive(true);
+        timerText = CurTimer.GetComponent<TextMeshProUGUI>();
+        return ;
+    }
 
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return; // логика только на сервере
+        GetTimerClientRpc();
+        //CurTimer = ScoreBoardUI.Instance.gameObject.transform.Find("Timer").gameObject;
+        //CurTimer.SetActive(true);
+        //timerText = CurTimer.GetComponent<TextMeshProUGUI>();
+        StartCountdown();
         _checkRoutine = StartCoroutine(EventCheckLoop());
     }
 
@@ -53,6 +72,54 @@ public class EventManager : NetworkBehaviour
             StopCoroutine(_checkRoutine);
             _checkRoutine = null;
         }
+    }
+    public void StartCountdown()
+    {
+        if (countdownCoroutine != null)
+            StopCoroutine(countdownCoroutine);
+
+        countdownCoroutine = StartCoroutine(CountdownRoutine(300));
+    }
+
+    public void StopCountdown()
+    {
+        if (countdownCoroutine != null)
+        {
+            StopCoroutine(countdownCoroutine);
+            countdownCoroutine = null;
+        }
+    }
+
+    private IEnumerator CountdownRoutine(int totalSeconds)
+    {
+        int remaining = totalSeconds;
+
+        UpdateTextClientRpc(remaining);
+
+        while (remaining > 0)
+        {
+            yield return new WaitForSeconds(1f);
+            remaining--;
+            UpdateTextClientRpc(remaining);
+        }
+
+        countdownCoroutine = null;
+        OnFinished();
+    }
+    [ClientRpc]
+    private void UpdateTextClientRpc(int seconds)
+    {
+        int minutes = seconds / 60;
+        int secs = seconds % 60;
+        timerText.text = $"{minutes:00}:{secs:00}";
+    }
+
+    private void OnFinished()
+    {
+        Debug.Log("Countdown finished!");
+
+        // Можно вызвать конкретный метод напрямую, если не нужен ивент:
+        // SomeMethod();
     }
 
     private IEnumerator EventCheckLoop()

@@ -38,6 +38,7 @@ namespace Assets.Scripts.UI
             // оно подхватит нас, как только само поднимется (см. ScoreManager.OnNetworkSpawn).
             if (ScoreManager.Instance != null)
                 ScoreManager.Instance.SetScoreBoard(this);
+            //rowsContainer.transform.position += new Vector3(150f, -200f, 0);
         }
 
         public bool HasRow(ulong id) => rows.ContainsKey(id);
