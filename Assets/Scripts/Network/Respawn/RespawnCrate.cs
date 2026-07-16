@@ -115,8 +115,10 @@ namespace Assets.Scripts.Network.Respawn
                 Destroy(joint);   // отцепляем от дрона — ящик падает свободно
 
             if (rb != null)
-                rb.useGravity = true;
-
+            {
+                rb.linearVelocity = Vector3.zero;   // гасим инерцию раскачки
+                rb.angularVelocity = Vector3.zero;
+            }
             StartCoroutine(SettleThenDissolve());
         }
 

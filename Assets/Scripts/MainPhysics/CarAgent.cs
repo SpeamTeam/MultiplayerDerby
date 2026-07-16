@@ -77,7 +77,7 @@ public class CarAgent : NetworkBehaviour
         // поэтому регистрация тут не критична для респавна, но семантика "playersList"
         // должна оставаться честной.
         rb.isKinematic = true;
-        Invoke("UnStatic", 8);
+        Invoke("UnStatic", 7);
         if (IsOwner && !string.IsNullOrEmpty(NetworkHandler.Instance.localPlayerName))
         {
             nickName.Value = NetworkHandler.Instance.localPlayerName;

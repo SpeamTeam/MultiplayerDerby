@@ -9,12 +9,18 @@ namespace Assets.Scripts.Network.Respawn
     /// Дрон респавна. Пролетает по маршруту через арену (begin → end), неся ящик на
     /// подвесе, сбрасывает его — и сигналит серверу точку падения, где возродится машина.
     ///
+    /// ЗОНА ВЫСАДКИ: над ареной висит статичный триггер-коллайдер (слой landingZoneMask).
+    /// Пока дрон внутри него — проекция на арену (ProjectToArena) гарантированно валидна,
+    /// поэтому весь сброс происходит только там; begin/end маршрута остаются лишь линией
+    /// полёта и крайним рубежом на случай, если зона в сцене не настроена.
+    ///
     /// ДВЕ ВЕТКИ СБРОСА (решает сервер, ветку задаёт NetworkProvider через контекст):
-    ///   • Игрок (manualDeploy = true): на begin открывается окно высадки, игрок жмёт E,
-    ///     клиент шлёт RequestDropServerRpc — сервер проверяет и роняет ящик в текущую
-    ///     проекцию дрона. Не нажал до end — сервер роняет автоматически в end.
-    ///   • Бот (manualDeploy = false): окна нет, сервер роняет ящик, когда дрон прошёл
-    ///     botDropFraction маршрута.
+    ///   • Игрок (manualDeploy = true): окно высадки открывается на входе в зону (E),
+    ///     клиент шлёт RequestDropServerRpc — сервер роняет ящик в текущую проекцию дрона.
+    ///     Не нажал — форс-сброс на earlyDropZoneFraction доли зоны в сторону выхода;
+    ///     не успели и так — OnTriggerExit роняет немедленно (страховка).
+    ///   • Бот (manualDeploy = false): на входе в зону разово выбирается случайная доля
+    ///     в [0, earlyDropZoneFraction) — на ней и роняет, тоже с запасом до выхода.
     ///
     /// СЕТЬ (server-authoritative):
     ///   • Движение считает ТОЛЬКО сервер. Позиция/поворот реплицируются клиентам через
@@ -54,6 +60,13 @@ namespace Assets.Scripts.Network.Respawn
         [Tooltip("Максимальная длина луча проекции вниз. Должна перекрывать высоту маршрута над ареной.")]
         [SerializeField] private float groundRayDistance = 200f;
 
+        [Header("Зона высадки")]
+        [Tooltip("Слой триггер-зоны над ареной (CapsuleCollider/цилиндрический MeshCollider, IsTrigger). Пока дрон внутри — проекция на арену гарантированно валидна.")]
+        [SerializeField] private LayerMask landingZoneMask;
+
+        [Tooltip("Доля пройденной зоны (0..1) от входа в сторону выхода, после которой сброс форсируется (с запасом до дальней границы). У бота — верхняя граница случайного момента сброса.")]
+        [SerializeField] private float earlyDropZoneFraction = 0.8f;
+
         [Header("Уход после доставки")]
         [Tooltip("После сброса ящика дрон летит вверх на эту высоту, прежде чем деспавниться (уход из кадра).")]
         [SerializeField] private float exitRiseHeight = 30f;
@@ -76,6 +89,16 @@ namespace Assets.Scripts.Network.Respawn
         // Игрок нажал E и сервер запрос подтвердил (только на сервере).
         private bool dropRequested;
 
+        // Зона высадки (только на сервере): прогресс маршрута и оценка хорды зоны считаются
+        // от факта входа (OnTriggerEnter), а не от геометрии begin/end.
+        private bool inLandingZone;
+        private float currentK;          // 0..1 — текущий прогресс по маршруту begin→end
+        private float routeLength;       // длина маршрута в мировых единицах
+        private float zoneEntryK;        // currentK в момент входа в зону
+        private float zoneChordLength;   // оценка длины хорды зоны вдоль направления полёта
+        private float botZoneTargetFraction; // доля зоны, на которой роняет бот (выбирается на входе)
+        private bool forceDropNow;       // форс-сброс: порог доли зоны пройден или сработал OnTriggerExit
+
         // Кинематическое тело: сам дрон не падает, но служит якорем для подвеса ящика.
         private Rigidbody rb;
 
@@ -92,11 +115,10 @@ namespace Assets.Scripts.Network.Respawn
         /// <summary>Параметры одной доставки — заполняет NetworkProvider на сервере.</summary>
         public struct DeliveryContext
         {
-            public Vector3 routeBegin;      // вход на арену: тут спавнится дрон и открывается окно высадки
-            public Vector3 routeEnd;        // выход: досюда — дедлайн ручного сброса
+            public Vector3 routeBegin;      // вход на арену: тут спавнится дрон
+            public Vector3 routeEnd;        // крайний рубеж полёта (если зона высадки не сработает)
             public Vector3 arenaCenter;     // на него всегда развёрнут дрон
-            public bool manualDeploy;       // true — игрок (окно + E), false — бот (авто по доле маршрута)
-            public float botDropFraction;   // 0..1: доля маршрута, на которой роняет бот
+            public bool manualDeploy;       // true — игрок (окно + E), false — бот (авто в зоне высадки)
             public ulong deployClientId;    // чей клиент вправе просить сброс (ветка игрока)
             public GameObject cratePrefab;  // префаб ящика (NetworkObject)
             public float crateFallSettleTime;
@@ -153,25 +175,22 @@ namespace Assets.Scripts.Network.Respawn
         }
 
         /// <summary>
-        /// Летит по прямой begin → end со скоростью flightSpeed и выходит, когда пора ронять:
-        /// у игрока — по подтверждённому запросу E (или по достижении end как таймаут),
-        /// у бота — по прохождении botDropFraction маршрута.
+        /// Летит по прямой begin → end со скоростью flightSpeed и выходит, когда пора ронять.
+        /// Момент сброса решает зона высадки (OnTriggerEnter/Exit + UpdateZoneProgress):
+        /// у игрока — по подтверждённому запросу E, форс-сбросу на earlyDropZoneFraction или
+        /// выходу из зоны; у бота — по достижении случайной доли зоны botZoneTargetFraction.
+        /// traveled >= routeLength — крайний рубеж, если зона в сцене не настроена/не сработала.
         /// Движение через rb.MovePosition в такте физики: ящик на пружине качается сам.
         /// </summary>
         private IEnumerator FlyRouteUntilDrop()
         {
-            float routeLength = Vector3.Distance(ctx.routeBegin, ctx.routeEnd);
+            routeLength = Vector3.Distance(ctx.routeBegin, ctx.routeEnd);
             if (routeLength < 0.01f)
             {
                 Debug.LogWarning("[RespawnDrone] Маршрут вырожден (begin == end) — роняем ящик сразу.");
                 yield break;
             }
 
-            // Окно высадки только для игрока: с этого момента его E принимается.
-            if (ctx.manualDeploy)
-                deployWindowOpen.Value = true;
-
-            float botFraction = Mathf.Clamp01(ctx.botDropFraction);
             float traveled = 0f;
 
             while (traveled < routeLength)
@@ -179,25 +198,96 @@ namespace Assets.Scripts.Network.Respawn
                 yield return new WaitForFixedUpdate();
 
                 traveled += flightSpeed * Time.fixedDeltaTime;
-                float k = Mathf.Clamp01(traveled / routeLength);
-                rb.MovePosition(Vector3.Lerp(ctx.routeBegin, ctx.routeEnd, k));
+                currentK = Mathf.Clamp01(traveled / routeLength);
+                rb.MovePosition(Vector3.Lerp(ctx.routeBegin, ctx.routeEnd, currentK));
                 FaceArenaCenter();
+
+                if (inLandingZone)
+                    UpdateZoneProgress();
 
                 if (ctx.manualDeploy)
                 {
-                    // Игрок нажал E — сброс здесь и сейчас. Если не нажмёт, цикл сам
-                    // доедет до end: достижение end и есть таймаут.
-                    if (dropRequested) break;
+                    // Игрок нажал E, либо зона форсировала сброс (порог/выход) — здесь и сейчас.
+                    if (dropRequested || forceDropNow) break;
                 }
-                else if (k >= botFraction)
+                else if (forceDropNow)
                 {
-                    // Бот: сброс на заранее выбранной сервером доле маршрута.
+                    // Бот: достигнута случайная доля зоны или дрон покинул зону, не сбросив.
                     break;
                 }
             }
 
             if (ctx.manualDeploy)
                 deployWindowOpen.Value = false;
+        }
+
+        /// <summary>
+        /// Вход в зону высадки (только сервер). Открывает окно для игрока или выбирает
+        /// случайную долю зоны для бота, фиксирует точку отсчёта прогресса.
+        /// </summary>
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!IsServer || !started || inLandingZone) return;
+            if (((1 << other.gameObject.layer) & landingZoneMask) == 0) return;
+
+            inLandingZone = true;
+            zoneEntryK = currentK;
+            zoneChordLength = EstimateZoneChordLength(other);
+
+            if (ctx.manualDeploy)
+                deployWindowOpen.Value = true;
+            else
+                botZoneTargetFraction = UnityEngine.Random.Range(0f, Mathf.Max(0.01f, earlyDropZoneFraction));
+        }
+
+        /// <summary>
+        /// Выход из зоны высадки (только сервер) — страховка: если ещё не сбросили,
+        /// роняем немедленно, пока дрон гарантированно ещё над ареной.
+        /// </summary>
+        private void OnTriggerExit(Collider other)
+        {
+            if (!IsServer || !started || !inLandingZone) return;
+            if (((1 << other.gameObject.layer) & landingZoneMask) == 0) return;
+
+            inLandingZone = false;
+            forceDropNow = true;
+        }
+
+        /// <summary>
+        /// Пересчитывает прогресс прохождения зоны и форсирует сброс по достижении порога:
+        /// у игрока — earlyDropZoneFraction (если E ещё не нажата), у бота — botZoneTargetFraction.
+        /// </summary>
+        private void UpdateZoneProgress()
+        {
+            float traveledSinceEntry = (currentK - zoneEntryK) * routeLength;
+            float progress = zoneChordLength > 0.0001f ? Mathf.Clamp01(traveledSinceEntry / zoneChordLength) : 1f;
+
+            if (ctx.manualDeploy)
+            {
+                if (!dropRequested && progress >= earlyDropZoneFraction)
+                    forceDropNow = true;
+            }
+            else if (progress >= botZoneTargetFraction)
+            {
+                forceDropNow = true;
+            }
+        }
+
+        /// <summary>
+        /// Оценивает длину хорды зоны вдоль направления полёта — проекцией её мирового AABB
+        /// на вектор begin→end. Работает и для CapsuleCollider, и для цилиндрического
+        /// MeshCollider, не завязываясь на конкретный тип коллайдера.
+        /// </summary>
+        private float EstimateZoneChordLength(Collider zoneCollider)
+        {
+            Vector3 dir = ctx.routeEnd - ctx.routeBegin;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 0.0001f) return 1f;
+            dir.Normalize();
+
+            Bounds b = zoneCollider.bounds;
+            float halfExtentAlongDir = Mathf.Abs(b.extents.x * dir.x) + Mathf.Abs(b.extents.z * dir.z);
+            return Mathf.Max(0.01f, halfExtentAlongDir * 2f);
         }
 
         /// <summary>
