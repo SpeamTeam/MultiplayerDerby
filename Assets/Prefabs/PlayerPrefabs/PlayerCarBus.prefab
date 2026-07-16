@@ -463,7 +463,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarHealth
   maxHealth: 100
-  spawnInvulnerability: 2
+  spawnInvulnerability: 11
+  respawnInvulnerability: 2.5
 --- !u!114 &3826756364511809366
 MonoBehaviour:
   m_ObjectHideFlags: 0

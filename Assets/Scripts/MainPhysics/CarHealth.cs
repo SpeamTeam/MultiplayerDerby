@@ -20,8 +20,11 @@ public class CarHealth : NetworkBehaviour
     [Tooltip("Максимальное и стартовое здоровье машины")]
     public float maxHealth = 100f;
 
-    [Tooltip("Неуязвимость (в секундах) сразу после спавна, чтобы не убивало на респавне")]
-    public float spawnInvulnerability = 2f;
+    [Tooltip("Неуязвимость (сек) при ПЕРВОМ появлении машины в матче: длинная, чтобы игрок успел освоиться на старте")]
+    public float spawnInvulnerability = 11f;
+
+    [Tooltip("Неуязвимость (сек) после респавна: короткая — машину уже привёз дрон, зрители ждали, ей достаточно защиты только от удара в момент появления")]
+    public float respawnInvulnerability = 2.5f;
 
     // Авторитативное HP. Пишет только сервер, читают все пиры.
     private readonly NetworkVariable<float> netHealth = new(
@@ -32,7 +35,9 @@ public class CarHealth : NetworkBehaviour
     private readonly NetworkVariable<bool> netIsDead = new(
         writePerm: NetworkVariableWritePermission.Server);
 
-    // Момент (в серверном времени NGO), до которого машина неуязвима.
+    // Момент (в серверном времени NGO), до которого машина неуязвима. Окно взводят два разных
+    // пути: OnNetworkSpawn (первое появление, spawnInvulnerability) и ResetState (респавн,
+    // respawnInvulnerability) — длительность у них разная, см. тултипы выше.
     // Хранится как метка времени, а не тикающий таймер — не гоняем лишний трафик каждый кадр,
     // а IsInvulnerable честно считается и на сервере, и на клиентах через синхронизированные часы.
     private readonly NetworkVariable<double> invulnerableUntil = new(
@@ -64,6 +69,10 @@ public class CarHealth : NetworkBehaviour
         {
             netHealth.Value = maxHealth;
             netIsDead.Value = false;
+
+            // Только первое появление машины в матче: респавн переиспользует этот же
+            // NetworkObject (CarAgent.ServerRespawnAt переставляет его, а не спавнит заново),
+            // поэтому сюда он не заходит и получает короткое окно из ResetState.
             invulnerableUntil.Value = NetworkManager.ServerTime.Time + spawnInvulnerability;
         }
     }
@@ -154,12 +163,16 @@ public class CarHealth : NetworkBehaviour
         OnDied?.Invoke(attacker);
     }
 
-    /// <summary>Полный сброс — для респавна. Вызов с клиента игнорируется.</summary>
+    /// <summary>
+    /// Полный сброс — для респавна. Вызов с клиента игнорируется.
+    /// Окно неуязвимости здесь короткое (respawnInvulnerability), а не стартовое: вызывается
+    /// в момент, когда машина уже встала в точку, — прикрыть только само появление.
+    /// </summary>
     public void ResetState()
     {
         if (!IsServer) return;
         netHealth.Value = maxHealth;
-        invulnerableUntil.Value = NetworkManager.ServerTime.Time + spawnInvulnerability;
+        invulnerableUntil.Value = NetworkManager.ServerTime.Time + respawnInvulnerability;
         netIsDead.Value = false;
     }
 }

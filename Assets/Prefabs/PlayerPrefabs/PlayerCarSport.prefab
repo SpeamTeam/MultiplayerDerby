@@ -1868,6 +1868,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   maxHealth: 10
   spawnInvulnerability: 11
+  respawnInvulnerability: 2.5
 --- !u!114 &-6616988544582934443
 MonoBehaviour:
   m_ObjectHideFlags: 0
