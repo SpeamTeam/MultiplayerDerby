@@ -35,4 +35,4 @@ MonoBehaviour:
   defaultMaxPlayers: 4
   minPlayers: 1
   lobbySlotCap: 8
-  postCombatPointPrefab: {fileID: 1693287044748209818, guid: 1a85bdf1717af554eb446a1455f8d181, type: 3}
+  postCombatPointPrefab: {fileID: 5188076380774808645, guid: 1a85bdf1717af554eb446a1455f8d181, type: 3}

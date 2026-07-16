@@ -1,3 +1,5 @@
+using Assets.Scripts.AI;
+using Assets.Scripts.Network;
 using Assets.Scripts.Network.Lobby;
 using Assets.Scripts.UI;
 using System;
@@ -340,12 +342,167 @@ namespace Assets.Scripts.InGameLogic
 
         public void PostCombat()
         {
+            // Вся работа тут server-authoritative (спавн точки, телепорт машин по авторитетному
+            // NetworkTransform). На клиенте звать нечего — молча выходим.
+            if (!IsServer) return;
+
+            // Бой окончён: снимаем все респавны (в т.ч. уже запрошенные / дрон в полёте) ДО
+            // расстановки на подиум — иначе идущая доставка позже воскресила бы и телепортнула
+            // машину обратно в точку сброса ящика.
+            NetworkProvider.Instance?.CancelAllRespawns();
+
             var best3 = ThreeBestPlayers();
+            if (best3.Count == 0) return;
+
             var cfg = GameManager.Instance.Config;
 
             var obj = SpawnPostCombatPoint(cfg, postCombatPointPosition, postCombatPointRotation);
 
             var pcps = obj.GetComponent<PostCombatPointScript>();
+
+            // Камеру на обзор подиума переключаем на КАЖДОМ клиенте (ClientRpc), а не здесь:
+            // PostCombat идёт только на сервере, а freeLookCamera у каждого пира своя.
+            SetCameraTargetPostCombatClientRpc(obj.GetComponent<NetworkObject>());
+
+            FreezeAtPoint(best3[0], pcps.firstPlacePoint.transform);
+            if (best3.Count > 1)
+                FreezeAtPoint(best3[1], pcps.secondPlacePoint.transform);
+            if (best3.Count > 2)
+                FreezeAtPoint(best3[2], pcps.thirdPlacePoint.transform);
+
+            ShowNamesHideHealthBars();
+        }
+
+        /// <summary>
+        /// По окончании боя прячем HP-бары и показываем ники над машинами — и у игроков, и у
+        /// ботов (у ботов в табло имя вида "Bot_N"). Идём по табло: в нём и имя, и id машины.
+        /// Само переключение делает каждый клиент у себя (CarAgent.EnterPostCombatModeClientRpc).
+        /// </summary>
+        private void ShowNamesHideHealthBars()
+        {
+            foreach (var entry in scores)
+            {
+                if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(entry.NetworkObjectId, out NetworkObject netObj))
+                    continue;
+
+                var agent = netObj.GetComponent<CarAgent>();
+                if (agent == null) continue;
+
+                agent.EnterPostCombatModeClientRpc(entry.Name);
+            }
+        }
+
+        /// <summary>
+        /// Ставит машину (бота или игрока) в подиумную точку и полностью замораживает её —
+        /// без управления и без физики. Только на сервере.
+        /// </summary>
+        private void FreezeAtPoint(GameObject playerObj, Transform targetPlace)
+        {
+            var agent = playerObj.GetComponent<CarAgent>();
+            var rb = playerObj.GetComponent<Rigidbody>();
+            var controller = playerObj.GetComponent<PlayerCarController>();
+
+            // Управление — прочь. Физика машины считается ТОЛЬКО на сервере
+            // (см. PlayerCarController.FixedUpdate), поэтому контроллер глушим здесь, на сервере,
+            // а не одним лишь ClientRpc: на выделенном сервере RPC до него не дойдёт и машина
+            // продолжит ехать. Владельцу всё равно шлём ClientRpc — там контроллер гасит ввод,
+            // звук и визуал колёс.
+            if (controller != null) controller.enabled = false;
+
+            if (agent != null && agent.IsBotControlled)
+                TurnOffBotControll(agent);
+            else if (controller != null)
+                TurnControllsOffClientRpc(new NetworkBehaviourReference(controller));
+
+            // Снимаем остаточный момент с колёс: после выключения контроллера WheelCollider
+            // сохраняет последний motorTorque/brakeTorque, и без обнуления машина уедет с точки.
+            ZeroWheelTorque(controller);
+
+            if (rb != null)
+            {
+                // Гасим инерцию ДО перехода в кинематик (кинематику скорость не задать),
+                // затем замораживаем — кинематик держит машину в точке и не даёт столкновениям
+                // её толкнуть; авторитетный NetworkTransform разошлёт застывшую позу всем.
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.isKinematic = true;
+            }
+
+            playerObj.transform.SetPositionAndRotation(targetPlace.position, targetPlace.rotation);
+        }
+
+        private static void ZeroWheelTorque(PlayerCarController controller)
+        {
+            if (controller == null) return;
+
+            foreach (var wheel in new[] { controller.wheelFL, controller.wheelFR, controller.wheelRL, controller.wheelRR })
+            {
+                if (wheel == null) continue;
+                wheel.motorTorque = 0f;
+                wheel.brakeTorque = 0f;
+            }
+        }
+
+        [ClientRpc]
+        private void TurnControllsOffClientRpc(NetworkBehaviourReference controllerRef)
+        {
+            if (controllerRef.TryGet(out PlayerCarController controller))
+            {
+                controller.enabled = false;
+
+            }
+        }
+
+        /// <summary>
+        /// Переключает камеру КАЖДОГО клиента на обзорную точку подиума по окончании боя.
+        /// Идёт ClientRpc'ом, а не на сервере, потому что freeLookCamera (CinemachineFind) —
+        /// локальный синглтон в сцене у каждого пира: серверная установка цели видна лишь хосту.
+        ///
+        /// Точку берём из самого заспавненного PostCombatPoint по его NetworkObjectReference —
+        /// сам Transform по сети передать нельзя. NGO шлёт спавн точки перед этим RPC, так что
+        /// обычно она уже здесь; на случай гонки (точка ещё не доспавнилась / камера не готова)
+        /// ждём в корутине с таймаутом.
+        /// </summary>
+        [ClientRpc]
+        private void SetCameraTargetPostCombatClientRpc(NetworkObjectReference pointRef)
+        {
+            StartCoroutine(ApplyPostCombatCameraTarget(pointRef));
+        }
+
+        private IEnumerator ApplyPostCombatCameraTarget(NetworkObjectReference pointRef)
+        {
+            const float timeoutSeconds = 5f;
+            float elapsed = 0f;
+            PostCombatPointScript point = null;
+
+            while (elapsed < timeoutSeconds)
+            {
+                if (point == null && pointRef.TryGet(out NetworkObject pointObj))
+                    point = pointObj.GetComponent<PostCombatPointScript>();
+
+                bool cameraReady = CinemachineFind.Instance != null &&
+                                   CinemachineFind.Instance.freeLookCamera != null;
+
+                if (point != null && point.cameraTargetTransform != null && cameraReady)
+                {
+                    CinemachineFind.Instance.freeLookCamera.Target.TrackingTarget = point.cameraTargetTransform;
+                    yield break;
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            Debug.LogWarning("[ScoreManager] Не удалось навести камеру на обзор подиума: точка подиума или камера не готовы за отведённое время.");
+        }
+
+        private void TurnOffBotControll(CarAgent agent)
+        {
+            // Компоненты бот-мозга опциональны — глушим только те, что есть, без NRE.
+            if (agent.TryGetComponent(out NavMeshBot navigator))
+                navigator.enabled = false;
+            if (agent.TryGetComponent(out BotTargeting bot))
+                bot.enabled = false;
         }
 
         private GameObject SpawnPostCombatPoint(GameConfig config, Vector3 pos, Quaternion rot)
