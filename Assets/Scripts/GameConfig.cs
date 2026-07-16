@@ -69,5 +69,7 @@ namespace Assets.Scripts
 
         [Tooltip("Абсолютная ёмкость списка слотов (верхняя граница слайдера MaxPlayers)")]
         public int lobbySlotCap = 8;
+
+        public GameObject postCombatPointPrefab;
     }
 }
