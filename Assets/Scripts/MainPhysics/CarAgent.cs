@@ -139,6 +139,8 @@ public class CarAgent : NetworkBehaviour
         input = GetComponent<PlayerInput>();
 
         StartCoroutine(SubscribePauseMenuInputActivation());
+
+        CinemachineFind.Instance.freeLookCamera.Target.TrackingTarget = transform;
     }
 
     private IEnumerator SubscribePauseMenuInputActivation()

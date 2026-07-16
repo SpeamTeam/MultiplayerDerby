@@ -25,9 +25,10 @@ namespace Assets.Scripts.Network.Respawn
     /// СЕТЬ (server-authoritative):
     ///   • Движение считает ТОЛЬКО сервер. Позиция/поворот реплицируются клиентам через
     ///     NetworkTransform на префабе.
-    ///   • Дрон двигается своим кинематическим Rigidbody (MovePosition/MoveRotation), а не
-    ///     через transform: ящик висит на SpringJoint, привязанном к этому Rigidbody, и
-    ///     раскачивается от его движения. Прямую запись в transform физика joint'а не видит.
+    ///   • Дрон — кинематический Rigidbody, двигается через MovePosition/MoveRotation
+    ///     (интерполяция сглаживает движение между тактами физики). Ящик не висит на joint'е и
+    ///     не позиционируется покадрово: он ПРИКЛЕЕН к CrateAttachPoint парентингом и едет
+    ///     вместе с иерархией дрона сам — см. RespawnCrate.
     ///   • Спавн дрона, выбор момента сброса и сам сброс — только на сервере. Клиент может
     ///     лишь ПОПРОСИТЬ сброс (RequestDropServerRpc); роняет ящик всегда сервер.
     ///   • Звук двигателя — 3D-AudioSource (spatialBlend = 1) на префабе, играет на всех
@@ -99,8 +100,14 @@ namespace Assets.Scripts.Network.Respawn
         private float botZoneTargetFraction; // доля зоны, на которой роняет бот (выбирается на входе)
         private bool forceDropNow;       // форс-сброс: порог доли зоны пройден или сработал OnTriggerExit
 
-        // Кинематическое тело: сам дрон не падает, но служит якорем для подвеса ящика.
+        // Кинематическое тело: сам дрон не падает, движется скриптом через MovePosition.
         private Rigidbody rb;
+
+        /// <summary>Точка на дроне, к которой приклеивается ящик. Не задана в префабе — сам дрон.</summary>
+        public Transform CrateAttachPoint => crateAttachPoint != null ? crateAttachPoint : transform;
+
+        /// <summary>Локальное смещение ящика относительно <see cref="CrateAttachPoint"/>.</summary>
+        public Vector3 CrateAttachLocalOffset => crateAttachPoint != null ? Vector3.zero : crateHangOffset;
 
         private void Awake()
         {
@@ -134,27 +141,30 @@ namespace Assets.Scripts.Network.Respawn
         /// </summary>
         public void BeginDelivery(DeliveryContext context)
         {
+            CinemachineFind.Instance.freeLookCamera.Target.TrackingTarget = transform;
+
             if (!IsServer || started) return;
             started = true;
             ctx = context;
 
             // Стартовый разворот на центр арены — мгновенно, до первого FixedUpdate,
-            // иначе дрон успеет мигнуть неверным поворотом.
-            FaceArenaCenter(instant: true);
+            // иначе дрон успеет мигнуть неверным поворотом. Ящик спавнится уже после этого,
+            // сразу в правильной точке подвеса.
+            transform.rotation = FacingAt(transform.position);
 
             StartCoroutine(DeliverRoutine());
         }
 
         private IEnumerator DeliverRoutine()
         {
-            // --- Фаза 1: спавним ящик и подвешиваем его под дрон ---
+            // --- Фаза 1: спавним ящик и приклеиваем его к точке подвеса ---
             RespawnCrate crate = SpawnCrate();
 
             // --- Фаза 2: пролёт begin → end, по дороге решаем момент сброса ---
             yield return StartCoroutine(FlyRouteUntilDrop());
 
             // --- Фаза 3: сброс ящика в текущую проекцию дрона на арену ---
-            // Ящик отцепляется от подвеса и падает вертикально вниз — сюда же встанет машина.
+            // Ящик отцепляется от дрона и падает вертикально вниз — сюда же встанет машина.
             Vector3? dropPoint = ProjectToArena(rb.position);
             if (crate != null)
                 crate.ServerDrop();
@@ -180,7 +190,7 @@ namespace Assets.Scripts.Network.Respawn
         /// у игрока — по подтверждённому запросу E, форс-сбросу на earlyDropZoneFraction или
         /// выходу из зоны; у бота — по достижении случайной доли зоны botZoneTargetFraction.
         /// traveled >= routeLength — крайний рубеж, если зона в сцене не настроена/не сработала.
-        /// Движение через rb.MovePosition в такте физики: ящик на пружине качается сам.
+        /// Движение через ApplyPose в такте физики: тем же кадром переносится и ящик.
         /// </summary>
         private IEnumerator FlyRouteUntilDrop()
         {
@@ -199,8 +209,7 @@ namespace Assets.Scripts.Network.Respawn
 
                 traveled += flightSpeed * Time.fixedDeltaTime;
                 currentK = Mathf.Clamp01(traveled / routeLength);
-                rb.MovePosition(Vector3.Lerp(ctx.routeBegin, ctx.routeEnd, currentK));
-                FaceArenaCenter();
+                ApplyPose(Vector3.Lerp(ctx.routeBegin, ctx.routeEnd, currentK));
 
                 if (inLandingZone)
                     UpdateZoneProgress();
@@ -351,26 +360,15 @@ namespace Assets.Scripts.Network.Respawn
 
             crate.ServerConfigure(ctx.crateFallSettleTime, ctx.crateDissolveDuration);
 
-            // Подвешиваем один раз — дальше ящик держит SpringJoint, а не покадровое
-            // позиционирование. connectedAnchor задаётся в локальных координатах дрона.
-            crate.ServerAttach(rb, HangLocalOffset());
+            // Приклеиваем к точке подвеса: дальше ящик едет с иерархией дрона сам.
+            crate.ServerBeginCarry(this);
             return crate;
-        }
-
-        /// <summary>Точка подвеса ящика в локальных координатах дрона (для connectedAnchor).</summary>
-        private Vector3 HangLocalOffset()
-        {
-            return crateAttachPoint != null
-                ? transform.InverseTransformPoint(crateAttachPoint.position)
-                : crateHangOffset;
         }
 
         /// <summary>Точка подвеса ящика в мировых координатах (стартовая позиция спавна).</summary>
         private Vector3 HangPointWorld()
         {
-            return crateAttachPoint != null
-                ? crateAttachPoint.position
-                : transform.TransformPoint(crateHangOffset);
+            return CrateAttachPoint.TransformPoint(CrateAttachLocalOffset);
         }
 
         private IEnumerator ExitRoutine()
@@ -383,24 +381,32 @@ namespace Assets.Scripts.Network.Respawn
             {
                 yield return new WaitForFixedUpdate();
                 t += Time.fixedDeltaTime;
-                rb.MovePosition(Vector3.Lerp(from, to, Mathf.Clamp01(t / dur)));
-                FaceArenaCenter();
+                ApplyPose(Vector3.Lerp(from, to, Mathf.Clamp01(t / dur)));
             }
         }
 
-        // Разворот на центр арены по горизонтали (не задираем/не опускаем нос дрона).
-        // instant = true только для стартового кадра, до того как заработает физика.
-        private void FaceArenaCenter(bool instant = false)
+        /// <summary>
+        /// Ставит дрон в позу такта физики: позиция + разворот на центр арены. Подвешенный ящик
+        /// тянуть не нужно — он приклеен парентингом и едет с иерархией сам.
+        /// </summary>
+        private void ApplyPose(Vector3 position)
         {
-            Vector3 flatDir = ctx.arenaCenter - rb.position;
-            flatDir.y = 0f;
-            if (flatDir.sqrMagnitude <= 0.0001f) return;
+            rb.MovePosition(position);
+            rb.MoveRotation(FacingAt(position));
+        }
 
-            Quaternion look = Quaternion.LookRotation(flatDir.normalized, Vector3.up);
-            if (instant)
-                transform.rotation = look;
-            else
-                rb.MoveRotation(look);
+        /// <summary>
+        /// Разворот на центр арены по горизонтали из точки position (нос дрона не задираем).
+        /// Если дрон ровно над центром — оставляем текущий поворот.
+        /// </summary>
+        private Quaternion FacingAt(Vector3 position)
+        {
+            Vector3 flatDir = ctx.arenaCenter - position;
+            flatDir.y = 0f;
+
+            return flatDir.sqrMagnitude > 0.0001f
+                ? Quaternion.LookRotation(flatDir.normalized, Vector3.up)
+                : rb.rotation;
         }
     }
 }
