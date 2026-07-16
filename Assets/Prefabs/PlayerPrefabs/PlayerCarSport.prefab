@@ -1913,8 +1913,8 @@ MonoBehaviour:
   engineMaxVolume: 0.45
   ParticlesSys: {fileID: 8369204343198476307}
   ParticlesSys2: {fileID: 4282870598398674451}
-  driftSound: {fileID: 0}
-  driftAudioSource: {fileID: 0}
+  driftSound: {fileID: 8300000, guid: c8ba73859103bf54d9f5629103dbc50c, type: 3}
+  driftAudioSource: {fileID: 2135685669570795879}
   driftAngleThreshold: 15
   driftMinSpeed: 3
   driftSoundSmoothSpeed: 6
