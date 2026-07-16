@@ -70,7 +70,11 @@ public class HealthBarUI : MonoBehaviour
         if (cam == null)
         {
             cam = Camera.main;
-            if (cam == null) return;
+            if (cam == null)
+            {
+                Debug.LogWarning("No main camera");
+                return;
+            }
         }
 
         transform.forward = (transform.position - cam.transform.position).normalized;
