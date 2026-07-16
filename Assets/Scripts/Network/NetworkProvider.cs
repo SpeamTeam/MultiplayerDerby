@@ -19,6 +19,14 @@ namespace Assets.Scripts.Network
         private readonly List<CarAgent> playersList = new List<CarAgent>();
         public IReadOnlyList<CarAgent> PlayersList => playersList;
 
+        // Активные корутины респавна — чтобы разом отменить их, когда бой окончен (PostCombat).
+        // Храним именно НАПРЯМУЮ запущенные RespawnSequence: их try/finally гарантированно
+        // отрабатывает при StopCoroutine и возвращает занятые маршруты (см. финальный блок там).
+        private readonly List<Coroutine> activeRespawns = new List<Coroutine>();
+
+        // После PostCombat респавнов больше нет: начатые отменены, новые не заказываются.
+        private bool combatEnded;
+
         public static NetworkProvider Instance { get; private set; }
 
         private void Awake()
@@ -56,9 +64,30 @@ namespace Assets.Scripts.Network
     public void HandleCarDeath(CarHealth carHealth)
     {
         if (!IsServer) return;
+        // Бой окончён (сработал PostCombat) — машины замерли на подиуме, новых респавнов нет.
+        if (combatEnded) return;
         var cfg = GameManager.Instance.Config;
         if (cfg == null || !cfg.autoRespawn) return;
-        StartCoroutine(RespawnSequence(carHealth.NetworkObjectId, cfg));
+        activeRespawns.Add(StartCoroutine(RespawnSequence(carHealth.NetworkObjectId, cfg)));
+    }
+
+    /// <summary>
+    /// Отменяет все респавны — и уже идущие (доставка дроном), и будущие. Зовётся из
+    /// ScoreManager.PostCombat: по окончании боя машины замирают на подиуме и не должны
+    /// воскресать, даже если ящик уже «запрошен» или дрон в полёте. Сервер, идемпотентно.
+    /// </summary>
+    public void CancelAllRespawns()
+    {
+        if (!IsServer) return;
+        combatEnded = true;
+
+        foreach (var routine in activeRespawns)
+            if (routine != null) StopCoroutine(routine);
+        activeRespawns.Clear();
+        // Занятые маршруты вернутся сами: try/finally в RespawnSequence отрабатывает и при
+        // StopCoroutine (см. комментарий в его finally). Дрон, если уже летит, доигрывает
+        // свою корутину и деспавнится сам — машину он уже не возродит, т.к. RespawnSequence
+        // остановлена до вызова RespawnObjectAt.
     }
 
     /// <summary>
