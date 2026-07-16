@@ -112,10 +112,11 @@ namespace Assets.Scripts.Network
         CarAgent carAgent = carObj.GetComponent<CarAgent>();
         if (carAgent == null)
         {
-            // Не машина — на всякий случай ведём себя как раньше.
-            yield return new WaitForSeconds(cfg.respawnDelay);
-            RespawnObject(networkObjectId);
-            yield break;
+                Debug.Log("[NetworkProvider] Пытаемся возродить не машину");
+                // Не машина — на всякий случай ведём себя как раньше.
+                yield return new WaitForSeconds(cfg.respawnDelay);
+                RespawnObject(networkObjectId);
+                yield break;
         }
 
         // Ветка высадки — по флагу бота, а НЕ по OwnerClientId: у ботов владелец сервер,
