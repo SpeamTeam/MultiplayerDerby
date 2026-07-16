@@ -16,7 +16,8 @@ TagManager:
   - Barrel
   - arenaMask
   - LandingZone
-  -
+  - RespawnDrone
+  - 
   - 
   - 
   - 

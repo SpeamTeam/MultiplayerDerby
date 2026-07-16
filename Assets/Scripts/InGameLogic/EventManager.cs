@@ -6,6 +6,7 @@ using Unity.Netcode;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SocialPlatforms.Impl;
+using Assets.Scripts.InGameLogic;
 
 // Описание одного случайного ивента
 [Serializable]
@@ -35,6 +36,8 @@ public class EventManager : NetworkBehaviour
 
     private Coroutine _checkRoutine;
     private System.Random _rng = new System.Random();
+
+    private int timerDuration = 15;
 
     private void Awake()
     {
@@ -78,7 +81,7 @@ public class EventManager : NetworkBehaviour
         if (countdownCoroutine != null)
             StopCoroutine(countdownCoroutine);
 
-        countdownCoroutine = StartCoroutine(CountdownRoutine(300));
+        countdownCoroutine = StartCoroutine(CountdownRoutine(timerDuration));
     }
 
     public void StopCountdown()
@@ -118,8 +121,7 @@ public class EventManager : NetworkBehaviour
     {
         Debug.Log("Countdown finished!");
 
-        // Можно вызвать конкретный метод напрямую, если не нужен ивент:
-        // SomeMethod();
+        ScoreManager.Instance.PostCombat();
     }
 
     private IEnumerator EventCheckLoop()

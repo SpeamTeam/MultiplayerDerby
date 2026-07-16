@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -75,6 +76,9 @@ namespace Assets.Scripts.InGameLogic
         [Tooltip("Потолок коэффициента — чтобы очень долгая жизнь не давала бесконечно растущие очки")]
         [SerializeField] private float maxSurvivalCoefficient = 3f;
         private int lastBotIndex = 1;
+
+        [SerializeField] private Vector3 postCombatPointPosition = Vector3.zero;
+        [SerializeField] private Quaternion postCombatPointRotation = Quaternion.identity;
 
         // Авторитативное реплицируемое табло. Пишет только сервер, читают все пиры.
         private readonly NetworkList<PlayerScoreEntry> scores = new(
@@ -337,6 +341,20 @@ namespace Assets.Scripts.InGameLogic
         public void PostCombat()
         {
             var best3 = ThreeBestPlayers();
+            var cfg = GameManager.Instance.Config;
+
+            var obj = SpawnPostCombatPoint(cfg, postCombatPointPosition, postCombatPointRotation);
+
+            var pcps = obj.GetComponent<PostCombatPointScript>();
+        }
+
+        private GameObject SpawnPostCombatPoint(GameConfig config, Vector3 pos, Quaternion rot)
+        {
+            var instance = Instantiate(config.postCombatPointPrefab, pos, rot);
+            var netObj = instance.GetComponent<NetworkObject>();
+            netObj.Spawn();
+            return netObj.gameObject;
+
         }
         
     }

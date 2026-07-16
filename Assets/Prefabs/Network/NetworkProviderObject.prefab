@@ -123,6 +123,8 @@ MonoBehaviour:
   basePointsPerTick: 0
   survivalCoefficientGrowthPerSecond: 0
   maxSurvivalCoefficient: 0
+  postCombatPointPosition: {x: 1549.03, y: 171, z: 364.81}
+  postCombatPointRotation: {x: 0, y: -0.2329362, z: 0, w: 0.97249204}
 --- !u!114 &867515810479028755
 MonoBehaviour:
   m_ObjectHideFlags: 0

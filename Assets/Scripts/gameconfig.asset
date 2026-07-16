@@ -22,7 +22,7 @@ MonoBehaviour:
   menuSceneName: MenuScene
   autoRespawn: 1
   respawnDelay: 7
-  useCinematicRespawn: 1
+  useCinematicRespawn: 0
   respawnDronePrefab: {fileID: 7408897286622075283, guid: ad879dea79f70644a9c494923e23a060, type: 3}
   respawnCratePrefab: {fileID: 8119475672496651745, guid: 96df55b5a4b689848b33e822dea7f1e6, type: 3}
   droneDeliveryStartTime: 7
@@ -35,3 +35,4 @@ MonoBehaviour:
   defaultMaxPlayers: 4
   minPlayers: 1
   lobbySlotCap: 8
+  postCombatPointPrefab: {fileID: 1693287044748209818, guid: 1a85bdf1717af554eb446a1455f8d181, type: 3}
