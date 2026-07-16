@@ -369,6 +369,27 @@ namespace Assets.Scripts.InGameLogic
                 FreezeAtPoint(best3[1], pcps.secondPlacePoint.transform);
             if (best3.Count > 2)
                 FreezeAtPoint(best3[2], pcps.thirdPlacePoint.transform);
+
+            ShowNamesHideHealthBars();
+        }
+
+        /// <summary>
+        /// По окончании боя прячем HP-бары и показываем ники над машинами — и у игроков, и у
+        /// ботов (у ботов в табло имя вида "Bot_N"). Идём по табло: в нём и имя, и id машины.
+        /// Само переключение делает каждый клиент у себя (CarAgent.EnterPostCombatModeClientRpc).
+        /// </summary>
+        private void ShowNamesHideHealthBars()
+        {
+            foreach (var entry in scores)
+            {
+                if (!NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(entry.NetworkObjectId, out NetworkObject netObj))
+                    continue;
+
+                var agent = netObj.GetComponent<CarAgent>();
+                if (agent == null) continue;
+
+                agent.EnterPostCombatModeClientRpc(entry.Name);
+            }
         }
 
         /// <summary>

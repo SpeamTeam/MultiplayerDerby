@@ -263,6 +263,20 @@ public class CarAgent : NetworkBehaviour
         rotation = Quaternion.identity;
     }
 
+    /// <summary>
+    /// Постбоевой режим для полоски над машиной: прячет HP-бар и показывает ник. Идёт
+    /// ClientRpc'ом, потому что HealthBarUI — локальный world-space канвас на каждом экземпляре
+    /// машины у каждого пира; серверная правка до чужих экранов не дошла бы. Имя передаём явно
+    /// (из табло ScoreManager), чтобы не зависеть от того, проставлен ли nickName у этой машины.
+    /// </summary>
+    [ClientRpc]
+    public void EnterPostCombatModeClientRpc(FixedString128Bytes displayName)
+    {
+        var bar = GetComponentInChildren<HealthBarUI>(true);
+        if (bar != null)
+            bar.EnterPostCombatMode(displayName.ToString());
+    }
+
     public void ActivatePauseMenu()
     {
         var pauseMenu = PauseMenuScript.Instance;
