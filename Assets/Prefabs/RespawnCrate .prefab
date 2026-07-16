@@ -111,7 +111,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2180772612
+  GlobalObjectIdHash: 1599480585
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -122,7 +122,7 @@ MonoBehaviour:
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
+  AutoObjectParentSync: 0
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
 --- !u!114 &9087220471105351466
@@ -179,7 +179,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8119475672496651745}
   serializedVersion: 5
-  m_Mass: 30
+  m_Mass: 40
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -331,10 +331,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   dissolveAudio: {fileID: 0}
   renderers: []
-  springForce: 2000
-  springDamper: 8
-  maxDistance: 3
-  minDistance: 0
 --- !u!114 &1389336200631000609
 MonoBehaviour:
   m_ObjectHideFlags: 0

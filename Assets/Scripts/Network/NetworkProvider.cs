@@ -67,10 +67,11 @@ namespace Assets.Scripts.Network
     ///   0–2с   камера на машине (клиент), 2–7с обзорные камеры (клиент),
     ///   с droneDeliveryStartTime дрон входит на арену по маршруту и начинается высадка.
     ///
-    /// Дрон спавнится в begin выбранного маршрута и летит к end, неся ящик:
-    ///   • машина игрока — открывается окно высадки, игрок роняет ящик по E (не успел до
-    ///     end — сервер роняет там автоматически);
-    ///   • машина бота — сервер роняет ящик на случайной доле маршрута.
+    /// Дрон спавнится в begin выбранного маршрута и летит к end, неся ящик; момент сброса
+    /// решает зона высадки над ареной (см. RespawnDrone: OnTriggerEnter/Exit):
+    ///   • машина игрока — на входе в зону открывается окно высадки, игрок роняет ящик по E
+    ///     (не успел — сервер роняет сам, с запасом до выхода из зоны);
+    ///   • машина бота — сервер роняет ящик на случайной доле зоны высадки.
     /// ServerRespawn вызывается ТОЛЬКО после того, как ящик сброшен и растворён, и машина
     /// встаёт в точку падения ящика (её возвращает дрон в onComplete).
     ///
@@ -111,10 +112,11 @@ namespace Assets.Scripts.Network
         CarAgent carAgent = carObj.GetComponent<CarAgent>();
         if (carAgent == null)
         {
-            // Не машина — на всякий случай ведём себя как раньше.
-            yield return new WaitForSeconds(cfg.respawnDelay);
-            RespawnObject(networkObjectId);
-            yield break;
+                Debug.Log("[NetworkProvider] Пытаемся возродить не машину");
+                // Не машина — на всякий случай ведём себя как раньше.
+                yield return new WaitForSeconds(cfg.respawnDelay);
+                RespawnObject(networkObjectId);
+                yield break;
         }
 
         // Ветка высадки — по флагу бота, а НЕ по OwnerClientId: у ботов владелец сервер,
@@ -178,7 +180,6 @@ namespace Assets.Scripts.Network
                 routeEnd = route.end.position,
                 arenaCenter = RespawnRouteManager.Instance.ArenaCenter,
                 manualDeploy = manualDeploy,
-                botDropFraction = Random.value,   // доля маршрута для бота, фиксируется на старте доставки
                 deployClientId = deployClientId,
                 cratePrefab = cfg.respawnCratePrefab,
                 crateFallSettleTime = cfg.crateFallSettleTime,
