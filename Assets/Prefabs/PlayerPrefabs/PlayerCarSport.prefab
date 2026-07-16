@@ -1865,7 +1865,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarHealth
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 10
+  maxHealth: 100
   spawnInvulnerability: 11
   respawnInvulnerability: 2.5
 --- !u!114 &-6616988544582934443

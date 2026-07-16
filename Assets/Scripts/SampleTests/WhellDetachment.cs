@@ -180,8 +180,12 @@ namespace Assets.Scripts.AI
             wheel.detached = true;
 
             Debug.Log($"[WheelDetachment] ═══ КОЛЕСО ОТПАЛО: {wheel.name} ═══");
+            if((wheel.name == "FL" || wheel.name == "FR") && gameObject.GetComponent<PlayerCarController>().IsBotControlled)
+            {
+                gameObject.GetComponent<CarHealth>().ApplyDamage(100);
+            }
 
-            Transform originalWheel = wheel.wheelMesh;
+                Transform originalWheel = wheel.wheelMesh;
             Vector3 pos = originalWheel.position;
             Quaternion rot = originalWheel.rotation;
 
