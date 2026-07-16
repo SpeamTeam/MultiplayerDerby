@@ -3,9 +3,11 @@ using Assets.Scripts.UI;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.InGameLogic
 {
@@ -302,5 +304,40 @@ namespace Assets.Scripts.InGameLogic
                 return;
             }
         }
+
+        
+
+        private List<GameObject> ThreeBestPlayers()
+        {
+            List<GameObject> players = new();
+     
+
+            List<PlayerScoreEntry> playerScores = new();
+
+            foreach (var playerScore in scores)
+            {
+                playerScores.Add(playerScore);
+            }
+
+            var top3 = Enumerable.OrderByDescending<PlayerScoreEntry, int>(playerScores, p => p.Score)
+              .Take(3)
+              .ToList();
+
+            foreach (var playerScore in top3)
+            {
+                if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(playerScore.NetworkObjectId, out NetworkObject netObj))
+                {
+                    players.Add(netObj.gameObject);
+                }
+            }
+            return players;
+        }
+
+
+        public void PostCombat()
+        {
+            var best3 = ThreeBestPlayers();
+        }
+        
     }
 }
